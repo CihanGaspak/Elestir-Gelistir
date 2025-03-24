@@ -241,60 +241,32 @@ nav {
     top: unset;
     bottom: 5px;
 }
-
-.story-gallery{
+/********** Ana Sayfadaki Filtreleme **********/
+.filter-container {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: var(--bg-color);
+    border-radius: 8px;
 }
-.story{
-    flex-basis: 18%;
-    padding-top: 32%;
-    position: relative;
-    background-position: center;
-    background-size: cover;
-    border-radius: 10px;
+.filter-button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: gray;
+    color: white;
+    font-size: 14px;
+    transition: 0.3s;
+}
+.filter-button:hover {
+    background-color: #0056b3;
+}
+.active {
+    background-color: #0056b3;
 }
 
-.story img{
-    position: absolute;
-    width: 45px;
-    border-radius: 50%;
-    top: 10px;
-    left: 10px;
-    border: 5px solid #1876f2;
-}
-.story p{
-    position: absolute;
-    bottom: 10px;
-    width: 100%;
-    text-align: center;
-    color: #fff;
-    font-size: 14px;
-}
-.story1{
-    background-image: linear-gradient(transparent, rgba(0,0,0,0.5)), url(images/status-1.png);
-}
-.story2{
-    background-image: linear-gradient(transparent, rgba(0,0,0,0.5)), url(images/status-2.png);
-}
-.story3{
-    background-image: linear-gradient(transparent, rgba(0,0,0,0.5)), url(images/status-3.png);
-}
-.story4{
-    background-image: linear-gradient(transparent, rgba(0,0,0,0.5)), url(images/status-4.png);
-}
-.story5{
-    background-image: linear-gradient(transparent, rgba(0,0,0,0.5)), url(images/status-5.png);
-}
-.story.story1 img{
-    top: unset;
-    left: 50%;
-    bottom: 40px;
-    transform: translateX(-50%);
-    border: 0;
-    width: 35px;
-}
 
 .write-post-container{
     width: 100%;
@@ -414,6 +386,8 @@ nav {
     color: #626262;
     background: transparent;
     border-radius: 4px;
+    margin-top: 20px; 
+    align-self: center;
 }
 .footer{
     text-align: center;
@@ -656,4 +630,82 @@ nav {
     position: absolute;
     bottom: 0;
     left: 0;
+}
+/* -------media query for home page------- */
+@media (max-width: 900px){
+    .right-sidebar {
+        display: none;
+    }
+    .left-sidebar {
+        display: none;
+    }
+    nav{
+        flex-wrap: wrap;
+    }
+    .search-box{
+        display: none;
+    }
+    .logo{
+        width: 110px;
+        margin-right: 20px;
+    }
+    .nav-left ul li img{
+        width: 20px;
+        margin: 0 8px;
+    }
+    .nav-user-icon img{
+        width: 30px;
+    }
+    .nav-user-icon{
+        margin-left: 0px;
+    }
+    .add-post-links{
+        flex-wrap: wrap;
+    }
+    .main-content{
+        flex-basis: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .add-post-links{
+        margin-right: 12px;
+        font-size: 9px;
+    }
+    .add-post-links a img{
+        width: 16px;
+        margin-right: 5px;
+    }
+    .post-input-container{
+        padding-left: 0px;
+    }
+}
+
+/*---------media query for profile page---------*/
+@media (max-width:900px){
+    .profile-container{
+        padding: 20px 5%;
+    }
+    .profile-details{
+        flex-wrap: wrap;
+    }
+    .pd-right{
+        text-align: left;
+        margin-top: 15px;
+    }
+    .pd-right button{
+        margin-left: 0; 
+        margin-right: 10px;
+    }
+    .pd-row div h3{
+        font-size: 16px;
+    }
+    .profile-info{
+        flex-wrap: wrap;
+    }
+    .info-col, .post-col{
+        flex-basis: 100%;
+    }
+    .friends-box div p{
+        font-size: 12px;
+    }
 }

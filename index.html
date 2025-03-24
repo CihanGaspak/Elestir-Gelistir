@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eleştir-Geliştir</title>
+    <title>Ana Sayfa</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://kit.fontawesome.com/3e9484d64b.js" crossorigin="anonymous"></script>
 </head>
@@ -11,7 +11,9 @@
     
     <nav>
         <div class="nav-left">
-            <img src="images/logo.png" class="logo" alt="Logo">
+            <a href="index.html">
+                <img src="images/logo.png" class="logo" alt="Logo">
+            </a>
             <ul>
                 <li><img src="images/notification.png" alt="Notifications"></li>
                 <li><img src="images/inbox.png" alt="Inbox"></li>
@@ -41,7 +43,7 @@
                     <img src="images/profile-pic.png">
                     <div>
                         <p>Cihan Gaspak</p>
-                        <a href="#">Profilini Gör</a>
+                        <a href="profile.html">Profilini Gör</a>
                     </div>
                 </div>
                 <hr>
@@ -97,8 +99,17 @@
 
         <!----------- Main Content ------------>
         <div class="main-content">
-
-
+            <!-- Filtreleme Butonları -->
+            <div class="filter-container">
+                <button class="filter-button active" onclick="filterPosts('all')">Tümü</button>
+                <button class="filter-button" onclick="filterPosts('egitim')">Eğitim</button>
+                <button class="filter-button" onclick="filterPosts('insaat')">İnşaat</button>
+                <button class="filter-button" onclick="filterPosts('arac')">Araç Bakım</button>
+                <button class="filter-button" onclick="filterPosts('teknoloji')">Teknoloji</button>
+                <button class="filter-button" onclick="filterPosts('gundelik')">Gündelik</button>
+            </div>
+        
+            <!-- Yeni Gönderi Yazma Alanı -->
             <div class="write-post-container">
                 <div class="user-profile">
                     <img src="images/profile-pic.png">
@@ -107,139 +118,25 @@
                         <small>Herkese Açık <i class="fa-solid fa-caret-down"></i></small>
                     </div>
                 </div>
-
+        
                 <div class="post-input-container">
                     <textarea rows="3" placeholder="Kafandaki soru işaretleri nedir?"></textarea>
                     <div class="add-post-links">
                         <a href="#"><img src="images/photo.png"> Fotoğraf/Video</a>
                     </div>
-
                 </div>
-
             </div>
-
-            <div class="post-container">
-                <div class="post-row">
-                    <div class="user-profile">
-                        <img src="images/profile-pic.png">
-                        <div>
-                            <p>Cihan Gaspak</p>
-                            <span>Şub 24 2024, 20:40</span>
-                        </div>
-                    </div>
-                    <a href="#"><i class="fa-solid fa-ellipsis-vertical"></i></a>
-                </div>
-                <p class="post-text">Kişisel Asistanımı Nasıl Geliştirebilirim?
-                    <a href="#">#yazılım</a>
-                    <a href="#">#teknoloji</a></p>
-                    <img src="images/shortcut-1.png" class="post-img">
-
-                    <div class="post-row">
-                        <div class="activity-icons">
-                            <div><img src="images/like.png"> 120</div>
-                            <div><img src="images/comments.png"> 45</div>
-                            <div><img src="images/search.png"> 20</div>
-                        </div>
-
-                        <div class="post-profile-icon">
-                            <img src="images/profile-pic.png"> <i class="fa-solid fa-caret-down"></i>
-                        </div>
-                    </div>
+        
+            <!-- Postları İçeren Konteyner -->
+            <div class="posts-container"></div>
+        
+            <!-- Daha Fazla Yükle Butonu -->
+            <div class="load-more-container">
+                <button type="button" class="load-more-btn">Daha Fazla Yükle</button>
             </div>
-
-            <div class="post-container">
-                <div class="post-row">
-                    <div class="user-profile">
-                        <img src="images/profile-pic.png">
-                        <div>
-                            <p>Cihan Gaspak</p>
-                            <span>May 24 2024, 21:15</span>
-                        </div>
-                    </div>
-                    <a href="#"><i class="fa-solid fa-ellipsis-vertical"></i></a>
-                </div>
-                <p class="post-text">HTML CSS Eğitim Kaynağı
-                    <a href="#">#teknoloji</a>
-                    <a href="#">#backend</a>
-                    <a href="#">#frontend</a></p>
-                    <img src="images/shortcut-1.png" class="post-img">
-
-                    <div class="post-row">
-                        <div class="activity-icons">
-                            <div><img src="images/like-blue.png"> 153</div>
-                            <div><img src="images/comments.png"> 60</div>
-                            <div><img src="images/search.png"> 55</div>
-                        </div>
-
-                        <div class="post-profile-icon">
-                            <img src="images/profile-pic.png"> <i class="fa-solid fa-caret-down"></i>
-                        </div>
-                    </div>
-            </div>
-
-            <div class="post-container">
-                <div class="post-row">
-                    <div class="user-profile">
-                        <img src="images/profile-pic.png">
-                        <div>
-                            <p>Cihan Gaspak</p>
-                            <span>Ocak 24 2024, 13:15</span>
-                        </div>
-                    </div>
-                    <a href="#"><i class="fa-solid fa-ellipsis-vertical"></i></a>
-                </div>
-                <p class="post-text">Dersten Nasıl Geçebilirim?
-                    <a href="#">#hayattakalma</a>
-                    <a href="#">#tavsiye</a></p>
-                    <img src="images/shortcut-1.png" class="post-img">
-
-                    <div class="post-row">
-                        <div class="activity-icons">
-                            <div><img src="images/like-blue.png"> 153</div>
-                            <div><img src="images/comments.png"> 60</div>
-                            <div><img src="images/search.png"> 55</div>
-                        </div>
-
-                        <div class="post-profile-icon">
-                            <img src="images/profile-pic.png"> <i class="fa-solid fa-caret-down"></i>
-                        </div>
-                    </div>
-            </div>
-
-            <div class="post-container">
-                <div class="post-row">
-                    <div class="user-profile">
-                        <img src="images/profile-pic.png">
-                        <div>
-                            <p>Cihan Gaspak</p>
-                            <span>May 24 2024, 17:15</span>
-                        </div>
-                    </div>
-                    <a href="#"><i class="fa-solid fa-ellipsis-vertical"></i></a>
-                </div>
-                <p class="post-text">Websitemi Yaparken Karşılaşacağım Sorunlar?
-                    <a href="#">#websitesi</a>
-                    <a href="#">#frontend</a></p>
-                    <img src="images/shortcut-1.png" class="post-img">
-
-                    <div class="post-row">
-                        <div class="activity-icons">
-                            <div><img src="images/like-blue.png"> 153</div>
-                            <div><img src="images/comments.png"> 60</div>
-                            <div><img src="images/search.png"> 55</div>
-                        </div>
-
-                        <div class="post-profile-icon">
-                            <img src="images/profile-pic.png"> <i class="fa-solid fa-caret-down"></i>
-                        </div>
-                    </div>
-            </div>
-
-
-            <button type="button" class="load-more-btn">Daha Fazla Yükle</button>
-
-
         </div>
+        
+        
 
         <!----------- Right Sidebar ------------>
         <div class="right-sidebar">

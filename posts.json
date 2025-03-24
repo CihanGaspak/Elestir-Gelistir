@@ -1,0 +1,62 @@
+[
+    {
+        "title": "Kişisel Asistanımı Nasıl Geliştirebilirim?",
+        "body": "Yazılım ve teknoloji trendlerini takip etmek, yeni frameworkler ve yapay zeka destekli araçları kullanmak kişisel asistan geliştirmede önemli rol oynar.",
+        "category": "egitim",
+        "tags": ["#yazılım", "#teknoloji"],
+        "image": null,
+        "author": "Cihan Gaspak",
+        "date": "2024-03-20 10:15",
+        "likes": 120,
+        "comments": 18,
+        "views": 340
+    },
+    {
+        "title": "HTML & CSS Eğitim Kaynağı",
+        "body": "Frontend geliştirme için HTML ve CSS öğrenmek isteyenler için temel teknikler ve kaynaklar burada!",
+        "category": "egitim",
+        "tags": ["#teknoloji", "#backend", "#frontend"],
+        "image": "images/shortcut-1.png",
+        "author": "Cihan Gaspak",
+        "date": "2024-03-24 14:30",
+        "likes": 85,
+        "comments": 12,
+        "views": 220
+    },    
+    {
+        "title": "Dersten Nasıl Geçebilirim?",
+        "body": "Başarılı olmak için ders planı oluşturmalı, düzenli tekrar yapmalı ve pratik sorular çözmelisin. Aynı zamanda verimli not alma teknikleri de yardımcı olabilir.",
+        "category": "gundelik",
+        "tags": ["#hayattakalma", "#tavsiye"],
+        "image": "",
+        "author": "Cihan Gaspak",
+        "date": "2024-03-22 16:45",
+        "likes": 95,
+        "comments": 8,
+        "views": 275
+    },
+    {
+        "title": "Websitemi Yaparken Karşılaşacağım Sorunlar",
+        "body": "Frontend geliştirme sırasında en sık karşılaşılan hatalar: tarayıcı uyumluluğu, performans optimizasyonu ve responsive tasarım. Çözümleriyle birlikte anlatıyoruz!",
+        "category": "teknoloji",
+        "tags": ["#websitesi", "#frontend"],
+        "image": "images/web-development.png",
+        "author": "Cihan Gaspak",
+        "date": "2024-03-21 12:20",
+        "likes": 110,
+        "comments": 22,
+        "views": 400
+    },
+    {
+        "title": "Temel İnşaat Teknikleri",
+        "body": "İnşaat mühendisliğinde temel taşıyıcı sistemler, malzeme bilgisi ve güvenlik önlemleri hakkında temel bilgiler burada!",
+        "category": "insaat",
+        "tags": ["#insaat"],
+        "image": "images/construction.png",
+        "author": "Cihan Gaspak",
+        "date": "2024-03-19 09:10",
+        "likes": 75,
+        "comments": 5,
+        "views": 180
+    }
+]
