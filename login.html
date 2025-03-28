@@ -7,50 +7,48 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="login-register-style.css">
     <script src="https://kit.fontawesome.com/3e9484d64b.js" crossorigin="anonymous"></script>
+    <script type="module" src="login-register-script.js" defer></script>
 </head>
 
 <body>
-    
     <div class="container">
         <div class="form-box login">
-            <form action="">
+            <form id="login-form">
                 <h1>Giriş Yap</h1>
                 <div class="input-box">
-                    <input type="text" placeholder="Kullanıcı Adı" required>
-                    <i class='bx bxs-user'></i>
+                    <input type="email" id="login-email" placeholder="E-Posta" required>
+                    <i class='bx bxs-envelope'></i>
                 </div>
                 <div class="input-box">
-                    <input type="password" placeholder="Şifre" required>
+                    <input type="password" id="login-password" placeholder="Şifre" required>
                     <i class='bx bxs-lock-alt'></i>
                 </div>
                 <div class="forgot-link">
                     <a href="#">Şifrenizi mi unuttunuz?</a>
                 </div>
                 <button type="submit" class="btn">Giriş Yap</button>
-
             </form>
         </div>
 
         <div class="form-box register">
-            <form action="">
+            <form id="register-form">
                 <h1>Kayıt Ol</h1>
                 <div class="input-box">
-                    <input type="text" placeholder="Kullanıcı Adı" required>
+                    <input type="text" id="register-username" placeholder="Kullanıcı Adı" required>
                     <i class='bx bxs-user'></i>
                 </div>
                 <div class="input-box">
-                    <input type="email" placeholder="E-Posta" required>
+                    <input type="email" id="register-email" placeholder="E-Posta" required>
                     <i class='bx bxs-envelope'></i>
                 </div>
                 <div class="input-box">
-                    <input type="password" placeholder="Şifre" required>
+                    <input type="password" id="register-password" placeholder="Şifre" required>
                     <i class='bx bxs-lock-alt'></i>
                 </div>
                 <div class="forgot-link">
                     <a href="#">Hesabınız var mı?</a>
                 </div>
                 <button type="submit" class="btn">Kayıt Ol</button>
-
             </form>
         </div>
 
@@ -66,9 +64,7 @@
                 <button class="btn login-btn">Giriş Yap</button>
             </div>
         </div>
-
     </div>        
-    
-    <script src="login-register-script.js"></script>
-
+        
 </body>
+</html>
