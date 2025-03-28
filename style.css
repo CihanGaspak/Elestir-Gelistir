@@ -82,7 +82,9 @@ nav {
     padding: 5px 15px;
 }
 .search-box img {
-    width: 18px;
+    width: 16px;
+    height: 16px;
+    margin-right: 15px;
 }
 .search-box input {
     border: none;
@@ -329,6 +331,52 @@ nav {
     color: #626262;
     margin: 20px 0;
 }
+.post-options-container {
+    position: relative;
+    display: inline-block;
+}
+
+.post-options-menu {
+    display: none;
+    position: absolute;
+    top: 20px;
+    right: 0;
+    background: white;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    z-index: 10;
+    width: 140px; /* Menü genişletildi */
+    padding: 5px 0; /* Üst-alt boşluk eklendi */
+    text-align: left; /* Yazıları ortaladık */
+}
+
+.post-options-menu.active {
+    display: block;
+}
+
+.post-options-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.post-options-menu ul li {
+    padding: 10px 15px; /* Sağ ve soldan boşluk eklendi */
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+    white-space: nowrap; /* Yazıların alt satıra geçmesini engelle */
+}
+
+.post-options-menu ul li i {
+    margin-right: 8px; /* İkon ile metin arasına boşluk bırak */
+}
+
+.post-options-menu ul li:hover {
+    background: #f1f1f1;
+}
+
+
 .user-profile span{
     font-size: 12px;
     color: #9a9a9a;
