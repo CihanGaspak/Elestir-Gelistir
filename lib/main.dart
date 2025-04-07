@@ -30,11 +30,12 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  int _selectedIndex = 1;
+  int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const ActivitiesPage(),
     const HomePage(),
+    const ActivitiesPage(),
+    const ProfilePage(),
     const ProfilePage(),
     const ProfilePage(),
   ];
@@ -57,16 +58,16 @@ class _MainPageState extends State<MainPage> {
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.event),
-            label: 'Etkinlikler',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Ana Sayfa',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.stacked_line_chart),
-            label: 'Hedefler',
+            icon: Icon(Icons.search),
+            label: 'Keşfet',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications),
+            label: 'Bildirimler',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

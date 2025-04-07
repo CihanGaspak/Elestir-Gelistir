@@ -1,0 +1,72 @@
+[
+  {
+    "username": "Cihan Gaspak",
+    "date": "2024-03-24 14:30",
+    "text": "HTML & CSS Eğitim Kaynağı",
+    "hashtags": ["teknoloji", "backend", "frontend"],
+    "image": "assets/honda_ads.jpg",
+    "likes": 85,
+    "comments": 12,
+    "shares": 220,
+    "category": "Eğitim",
+    "commentList": [
+      {
+        "text": "Harika bir gönderi!",
+        "name": "Ali",
+        "surname": "Yılmaz",
+        "date": "2025-04-07",
+        "likes": 3
+      },
+      {
+        "text": "Katılıyorum!",
+        "name": "Zeynep",
+        "surname": "Kaya",
+        "date": "2025-04-06",
+        "likes": 1
+      }
+    ]
+  },
+  {
+    "username": "Zeynep Kaya",
+    "date": "2024-03-25 10:00",
+    "text": "Yeni başlayanlar için Java rehberi",
+    "hashtags": ["java", "eğitim"],
+    "likes": 60,
+    "comments": 8,
+    "shares": 110,
+    "category": "Eğitim",
+    "commentList": []
+  },
+  {
+    "username": "Ali Demir",
+    "date": "2024-03-26 15:00",
+    "text": "Dış cephe mantolama tavsiyesi",
+    "hashtags": ["inşaat", "izolasyon"],
+    "likes": 32,
+    "comments": 3,
+    "shares": 10,
+    "category": "İnşaat"
+  },
+  {
+    "username": "Mehmet",
+    "date": "2025-04-06 12:00",
+    "text": "Araç bakımı hakkında bazı önerilerim var.",
+    "hashtags": ["araç", "bakım"],
+    "image": "assets/honda_ads.jpg",
+    "likes": 7,
+    "comments": 2,
+    "shares": 1,
+    "category": "Araç Bakım"
+  },
+  {
+    "username": "Selin",
+    "date": "2025-04-05 09:00",
+    "text": "Eğitim sistemi üzerine düşüncelerimi paylaşmak istiyorum.",
+    "hashtags": ["eğitim", "sistem"],
+    "likes": 10,
+    "comments": 4,
+    "shares": 2,
+    "category": "Eğitim",
+    "commentList": []
+  }
+]

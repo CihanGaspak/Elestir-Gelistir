@@ -1,4 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+
+import 'PostCard.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,6 +14,32 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final List<String> categories = ['Tümü', 'Eğitim', 'İnşaat', 'Araç Bakım'];
   String selectedCategory = 'Tümü';
+
+  List<dynamic> allPosts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadPosts();
+  }
+
+  Future<void> loadPosts() async {
+    final String jsonString = await rootBundle.loadString('assets/posts.json');
+    final List<dynamic> jsonData = json.decode(jsonString);
+    setState(() {
+      allPosts = jsonData;
+    });
+  }
+
+  List<dynamic> get filteredPosts {
+    if (selectedCategory == 'Tümü') {
+      return allPosts;
+    } else {
+      return allPosts
+          .where((post) => post['category'] == selectedCategory)
+          .toList();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,8 +67,6 @@ class _HomePageState extends State<HomePage> {
                   onTap: () {
                     setState(() {
                       selectedCategory = category;
-                      // TODO: Burada seçilen kategoriye göre postları filtrele
-                      print("Seçilen kategori: $category");
                     });
                   },
                   child: Container(
@@ -66,13 +94,14 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          // İçerik Alanı (örnek placeholder)
+          // Postlar
           Expanded(
-            child: Center(
-              child: Text(
-                '$selectedCategory kategorisine ait içerikler burada gösterilecek.',
-                style: TextStyle(fontSize: 16),
-              ),
+            child: ListView.builder(
+              itemCount: filteredPosts.length,
+              itemBuilder: (context, index) {
+                final post = filteredPosts[index];
+                return PostCard(post: post);
+              },
             ),
           ),
         ],
@@ -80,3 +109,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
