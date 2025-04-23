@@ -1,3 +1,4 @@
+import 'package:elestir_gelistir/loginpage.dart';
 import 'package:elestir_gelistir/profilpage.dart';
 import 'package:flutter/material.dart';
 import 'homepage.dart'; // HomePage burada tanımlı olacak
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MainPage(), // <-- Ana sayfa artık MainPage olacak
+      home: MainPage(), // <-- Ana sayfa artık MainPage olacak
     );
   }
 }
@@ -36,8 +37,7 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> _pages = [
     const HomePage(),
     const ActivitiesPage(),
-    const ProfilePage(),
-    const ProfilePage(),
+    LoginPage(),
     const ProfilePage(),
   ];
 
