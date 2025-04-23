@@ -1,3 +1,4 @@
+import 'package:elestir_gelistir/profilpage.dart';
 import 'package:flutter/material.dart';
 import 'homepage.dart'; // HomePage burada tanımlı olacak
 
@@ -89,11 +90,3 @@ class ActivitiesPage extends StatelessWidget {
   }
 }
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text("Profil Sayfası"));
-  }
-}

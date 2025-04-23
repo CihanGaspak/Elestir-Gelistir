@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'CommentSheet.dart';
+
 class PostCard extends StatefulWidget {
   final Map<String, dynamic> post;
+
   const PostCard({required this.post});
 
   @override
@@ -28,109 +31,25 @@ class _PostCardState extends State<PostCard> {
   }
 
   void showComments() {
-    final TextEditingController _commentController = TextEditingController();
-
-    // Eğer commentList null ise, boş bir liste atanıyor
-    List<Map<String, dynamic>> comments = List<Map<String, dynamic>>.from(
-      widget.post["commentList"] ?? [], // commentList null ise boş listeye dönüşüyor
-    );
-
     showModalBottomSheet(
+      backgroundColor: Colors.white,
       context: context,
       isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+      ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 16,
-            right: 16,
-            top: 16,
-          ),
-          child: SizedBox(
-            height: 400,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Yorumlar", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 10),
-                Expanded(
-                  child: comments.isEmpty
-                      ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Henüz yorum yapılmadı.", style: TextStyle(color: Colors.grey)),
-                      SizedBox(height: 10),
-                      Text("0", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    ],
-                  )
-                      : ListView.builder(
-                    itemCount: comments.length,
-                    itemBuilder: (context, index) {
-                      final comment = comments[index];
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text("${comment["name"]} ${comment["surname"]}"),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(comment["text"]),
-                            SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Text(comment["date"], style: TextStyle(fontSize: 12, color: Colors.grey)),
-                                SizedBox(width: 12),
-                                Icon(Icons.thumb_up_alt_outlined, size: 16, color: Colors.grey),
-                                SizedBox(width: 4),
-                                Text("${comment["likes"] ?? 0}", style: TextStyle(fontSize: 12)),
-                              ],
-                            )
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                TextField(
-                  controller: _commentController,
-                  decoration: InputDecoration(
-                    hintText: "Yorum yaz...",
-                    suffixIcon: IconButton(
-                      icon: Icon(Icons.send),
-                      onPressed: () {
-                        final newCommentText = _commentController.text.trim();
-                        if (newCommentText.isNotEmpty) {
-                          final newComment = {
-                            "text": newCommentText,
-                            "name": "Sen", // Buraya giriş yapan kullanıcının adı gelecek
-                            "surname": "Kullanıcı",
-                            "date": DateTime.now().toString().split(" ")[0],
-                            "likes": 0,
-                          };
-                          setState(() {
-                            comments.add(newComment);
-                            widget.post["commentList"] = comments;  // Güncel yorumları geri yazıyoruz
-                            widget.post["comments"] = comments.length; // Yorum sayısını dinamik olarak güncelliyoruz
-                          });
-                          _commentController.clear();
-                        }
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+        return CommentSheet(post: widget.post);
       },
     );
   }
 
-
   void sharePost() {
     final postText = widget.post["text"];
-    final hashtags = (widget.post["hashtags"] as List<dynamic>?)?.map((e) => "#$e").join(" ") ?? "";
-
-    final content = "$postText\n\n$hashtags";
+    final content = "$postText";
 
     Share.share(content);
   }
@@ -150,32 +69,141 @@ class _PostCardState extends State<PostCard> {
           children: [
             // Kullanıcı adı ve tarih
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CircleAvatar(backgroundColor: Colors.grey.shade300),
-                SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text(post["username"], style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text(post["date"], style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    CircleAvatar(backgroundColor: Colors.grey.shade300),
+                    SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(post["username"],
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(post["date"],
+                            style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      ],
+                    ),
+                  ],
+                ),
+
+                // İlerleme durumu ve üç nokta menüsü
+                Row(
+                  children: [
+                    Row(
+                      children: List.generate(3, (index) {
+                        final int currentStep = int.tryParse(widget.post["progressStep"].toString()) ?? 0;
+                        bool isFilled = index <= currentStep;
+
+                        IconData stepIcon;
+                        String label;
+
+                        switch (index) {
+                          case 0:
+                            stepIcon = Icons.help_outline;
+                            label = "Yardım";
+                            break;
+                          case 1:
+                            stepIcon = Icons.autorenew;
+                            label = "İşlemde";
+                            break;
+                          case 2:
+                            stepIcon = Icons.check_circle_outline;
+                            label = "Çözüldü";
+                            break;
+                          default:
+                            stepIcon = Icons.circle;
+                            label = "";
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: Column(
+                            children: [
+                              Icon(
+                                stepIcon,
+                                size: 16,
+                                color: isFilled ? Colors.orange : Colors.grey.shade400,
+                              ),
+                              SizedBox(height: 2),
+                              Icon(
+                                Icons.circle,
+                                size: 8,
+                                color: isFilled ? Colors.orange : Colors.grey.shade300,
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                label,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: isFilled ? Colors.orange : Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
+                    SizedBox(width: 8),
+
+                    // Menü
+                    PopupMenuButton<String>(
+                      icon: Icon(Icons.more_vert),
+                      onSelected: (value) {
+                        switch (value) {
+                          case "edit":
+                            break;
+                          case "delete":
+                            break;
+                          case "report":
+                            break;
+                        }
+                      },
+                      itemBuilder: (BuildContext context) {
+                        return [
+                          PopupMenuItem<String>(
+                            value: "edit",
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit, size: 18, color: Colors.black),
+                                SizedBox(width: 8),
+                                Text("Düzenle"),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: "delete",
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete, size: 18, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text("Sil"),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: "report",
+                            child: Row(
+                              children: [
+                                Icon(Icons.report_problem, size: 18, color: Colors.orange),
+                                SizedBox(width: 8),
+                                Text("Şikayet Et"),
+                              ],
+                            ),
+                          ),
+                        ];
+                      },
+                    ),
                   ],
                 ),
               ],
             ),
+
             SizedBox(height: 10),
 
             // İçerik
             Text(post["text"] ?? "", style: TextStyle(fontSize: 16)),
             SizedBox(height: 6),
-
-            // Hashtagler
-            if (post["hashtags"] != null)
-              Wrap(
-                spacing: 8,
-                children: (post["hashtags"] as List<dynamic>)
-                    .map((tag) => Text("#$tag", style: TextStyle(color: Colors.blue)))
-                    .toList(),
-              ),
 
             // Opsiyonel görsel
             if (post.containsKey("image"))
@@ -202,8 +230,10 @@ class _PostCardState extends State<PostCard> {
                   child: Row(
                     children: [
                       Icon(
-                        isLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined,
-                        color: isLiked ? Colors.blue : Colors.black,
+                        isLiked
+                            ? Icons.thumb_up_alt
+                            : Icons.thumb_up_alt_outlined,
+                        color: isLiked ? Colors.orange.shade600 : Colors.black,
                         size: 20,
                       ),
                       SizedBox(width: 4),
@@ -217,7 +247,7 @@ class _PostCardState extends State<PostCard> {
                     children: [
                       Icon(Icons.comment_outlined, size: 20),
                       SizedBox(width: 4),
-                      Text('${post["commentList"].length}'), // Dynamic comment count
+                      Text('${post["commentList"].length}'),
                     ],
                   ),
                 ),
@@ -232,11 +262,10 @@ class _PostCardState extends State<PostCard> {
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),
     );
   }
 }
-
