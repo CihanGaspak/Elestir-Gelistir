@@ -68,7 +68,7 @@ class _PostCardState extends State<PostCard> {
               post["text"] ?? "",
               style: const TextStyle(fontSize: 16, height: 1.4),
             ),
-            if (post.containsKey("image")) ...[
+            if (post.containsKey("image") && post["image"].toString().isNotEmpty) ...[
               const SizedBox(height: 12),
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),

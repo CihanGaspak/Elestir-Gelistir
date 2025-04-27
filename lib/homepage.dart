@@ -102,14 +102,17 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: primaryColor,
-        title: const Text("Eleştir - Geliştir", style: TextStyle(color: Colors.white)),
+        title: const Text(
+          "Eleştir - Geliştir",
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
                 child: SizedBox(
                   height: 50,
                   child: ListView.builder(
@@ -153,11 +156,11 @@ class _HomePageState extends State<HomePage> {
         )
             : ListView.separated(
           itemCount: filteredPosts.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          separatorBuilder: (context, index) => const SizedBox(height: 0), // Postlar arası boşluk yok
+          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0), // Dış padding sıfır
           itemBuilder: (context, index) {
             final post = filteredPosts[index];
-            return PostCard(post: post);
+            return PostCard(post: post); // Direkt PostCard
           },
         ),
       ),
