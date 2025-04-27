@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'PostCard.dart'; // PostCard bileşenini dahil et
+import 'package:firebase_auth/firebase_auth.dart'; // <-- Firebase auth import
+import 'PostCard.dart';
+import 'package:elestir_gelistir/settingspage.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -16,9 +18,9 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   File? _profileImage;
   File? _coverImage;
-  String name = "Cihan Gaspak";
-  String username = "@cihangaspak";
-  String bio = "Herşeyi az bir şeyi çok biliyor :) 💪";
+  String name = "Kullanıcı"; // Başlangıç boş
+  String username = "@kullanici"; // Başlangıç boş
+  String bio = "Nisan değilse Mayıs";
   int solutions = 18;
   int supports = 45;
   double helpfulness = 8.7;
@@ -27,7 +29,23 @@ class _ProfilePageState extends State<ProfilePage> {
 
   List<dynamic> allPosts = [];
 
-  // Simulate fetching posts from local file or assets
+  @override
+  void initState() {
+    super.initState();
+    loadUserInfo(); // Kullanıcı bilgilerini yükle
+    loadPosts(); // Postları yükle
+  }
+
+  Future<void> loadUserInfo() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        name = user.displayName ?? "Kullanıcı";
+        username = "@${user.email?.split('@')[0]}"; // Email'in '@' öncesini al
+      });
+    }
+  }
+
   Future<void> loadPosts() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -38,7 +56,6 @@ class _ProfilePageState extends State<ProfilePage> {
           allPosts = json.decode(contents);
         });
       } else {
-        // Eğer asset'ten yüklemek gerekiyorsa
         final assetData = await rootBundle.loadString('assets/posts.json');
         setState(() {
           allPosts = json.decode(assetData);
@@ -56,31 +73,6 @@ class _ProfilePageState extends State<ProfilePage> {
     await file.writeAsString(json.encode(allPosts));
   }
 
-  @override
-  void initState() {
-    super.initState();
-    loadPosts(); // Postları yükle
-  }
-
-  Future<void> pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _profileImage = File(picked.path);
-      });
-    }
-  }
-  Future<void> pickCoverImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _coverImage = File(picked.path);
-      });
-    }
-  }
-
   Future<void> pickProfileImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
@@ -91,6 +83,15 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> pickCoverImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _coverImage = File(picked.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,19 +100,17 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: Text("Profil",style: TextStyle(color: Colors.white),),
+          title: const Text("Profil", style: TextStyle(color: Colors.white)),
           automaticallyImplyLeading: false,
           backgroundColor: Colors.orange.shade600,
-          // geri tuşunu kaldırır
           actions: [
             IconButton(
-              icon: Icon(Icons.settings,size: 30,color: Colors.white,),
+              icon: const Icon(Icons.settings, size: 30, color: Colors.white),
               onPressed: () {
-                // Ayarlar sayfasını açmak için istediğiniz navigasyon işlemi burada yapılabilir
-                /*Navigator.push(
+                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SettingsPage()), // Ayarlar sayfasını buraya ekleyin
-                );*/
+                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                );
               },
             ),
           ],
@@ -130,11 +129,10 @@ class _ProfilePageState extends State<ProfilePage> {
                           Stack(
                             alignment: Alignment.bottomLeft,
                             children: [
-                              // Arka plan (kapak) fotoğrafı
                               GestureDetector(
                                 onTap: pickCoverImage,
                                 child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8), // köşe yuvarlama
+                                  borderRadius: BorderRadius.circular(8),
                                   child: Container(
                                     height: 200,
                                     width: double.infinity,
@@ -142,23 +140,22 @@ class _ProfilePageState extends State<ProfilePage> {
                                       image: DecorationImage(
                                         image: _coverImage != null
                                             ? FileImage(_coverImage!)
-                                            : AssetImage("assets/images/cover.jpg") as ImageProvider,
+                                            : const AssetImage("assets/images/cover.jpg") as ImageProvider,
                                         fit: BoxFit.cover,
                                       ),
                                     ),
-                                    child: Align(
+                                    child: const Align(
                                       alignment: Alignment.topRight,
                                       child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
+                                        padding: EdgeInsets.all(8.0),
                                         child: Icon(Icons.camera_alt, color: Colors.white),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                              // Profil fotoğrafı
                               Positioned(
-                                bottom:2,
+                                bottom: 2,
                                 left: 2,
                                 child: GestureDetector(
                                   onTap: pickProfileImage,
@@ -167,14 +164,14 @@ class _ProfilePageState extends State<ProfilePage> {
                                     height: 120,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                          border: Border.all(color: Colors.orange.shade600,width: 2),
+                                      border: Border.all(color: Colors.orange.shade600, width: 2),
                                       image: DecorationImage(
                                         image: _profileImage != null
                                             ? FileImage(_profileImage!)
-                                            : AssetImage("assets/images/profile.jpg") as ImageProvider,
+                                            : const AssetImage("assets/images/profile.jpg") as ImageProvider,
                                         fit: BoxFit.cover,
                                       ),
-                                      boxShadow: [
+                                      boxShadow: const [
                                         BoxShadow(
                                           color: Colors.black26,
                                           blurRadius: 6,
@@ -187,41 +184,29 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 60), // Profil fotoğrafı taşmasından dolayı boşluk bırak
-
-                          Text(name,
-                              style: TextStyle(
-                                  fontSize: 24, fontWeight: FontWeight.bold)),
-                          Text(username,
-                              style:
-                                  TextStyle(color: Colors.grey, fontSize: 16)),
-                          SizedBox(height: 8),
-                          Text(bio, style: TextStyle(fontSize: 14)),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 60),
+                          Text(name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                          Text(username, style: const TextStyle(color: Colors.grey, fontSize: 16)),
+                          const SizedBox(height: 8),
+                          Text(bio, style: const TextStyle(fontSize: 14)),
+                          const SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               _buildStat("Takipçi", followers),
                               _buildStat("Takip", following),
-                              _buildStat("Faydalılık",
-                                  "${helpfulness.toStringAsFixed(1)}/10"),
+                              _buildStat("Faydalılık", "${helpfulness.toStringAsFixed(1)}/10"),
                               _buildStat("Destekler", supports),
                             ],
                           ),
-                          SizedBox(height: 16),
-
-                          // ⬇️ TabBar'ı buraya ekliyoruz
+                          const SizedBox(height: 16),
                           TabBar(
                             labelColor: Colors.orange.shade600,
                             unselectedLabelColor: Colors.grey,
                             indicatorColor: Colors.orange.shade600,
                             tabs: [
-                              Tab(
-                                  icon: Icon(Icons.timelapse),
-                                  text: "Devam Ed. ($supports)"),
-                              Tab(
-                                  icon: Icon(Icons.check_circle_outline),
-                                  text: "Çözülenler ($solutions)"),
+                              Tab(icon: const Icon(Icons.timelapse), text: "Devam Ed. ($supports)"),
+                              Tab(icon: const Icon(Icons.check_circle_outline), text: "Çözülenler ($solutions)"),
                             ],
                           ),
                         ],
@@ -246,34 +231,33 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildStat(String title, dynamic value) {
     return Column(
       children: [
-        Text("$value",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        Text(title, style: TextStyle(color: Colors.grey)),
+        Text("$value", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(title, style: const TextStyle(color: Colors.grey)),
       ],
     );
   }
 
   Widget _buildOngoingPostList() {
     return ListView.builder(
-      padding: EdgeInsets.all(0), // Sadece dikey padding'i sıfırladık
+      padding: const EdgeInsets.all(0),
       itemCount: allPosts.length,
       itemBuilder: (context, index) {
         final post = allPosts[index];
-        return PostCard(post: post); // PostCard widget'ına post'u gönder
+        return PostCard(post: post);
       },
     );
   }
 
   Widget _buildSolutionList() {
     return ListView.builder(
-      padding: EdgeInsets.all(4),
+      padding: const EdgeInsets.all(4),
       itemCount: solutions,
       itemBuilder: (context, index) {
         return Card(
           child: ListTile(
-            leading: Icon(Icons.check_circle, color: Colors.green),
+            leading: const Icon(Icons.check_circle, color: Colors.green),
             title: Text("Çözüm ${index + 1}"),
-            subtitle: Text("Sorun başarılı şekilde çözülmüş."),
+            subtitle: const Text("Sorun başarılı şekilde çözülmüş."),
           ),
         );
       },

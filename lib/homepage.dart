@@ -45,7 +45,6 @@ class _HomePageState extends State<HomePage> {
           allPosts = json.decode(contents);
         });
       } else {
-        // Eğer assets'ten ilk defa yüklenecekse
         final assetData = await rootBundle.loadString('assets/posts.json');
         allPosts = json.decode(assetData);
         await savePosts();
@@ -65,7 +64,7 @@ class _HomePageState extends State<HomePage> {
     if (text.trim().isEmpty) return;
 
     final now = DateTime.now();
-    final imagePath = imageFile?.path ?? ""; // image varsa yolunu al
+    final imagePath = imageFile?.path ?? "";
 
     final newPost = {
       "username": "Cihan Gaspak",
@@ -91,75 +90,71 @@ class _HomePageState extends State<HomePage> {
     if (selectedCategory == 'Tümü') {
       return allPosts;
     } else {
-      return allPosts
-          .where((post) => post['category'] == selectedCategory)
-          .toList();
+      return allPosts.where((post) => post['category'] == selectedCategory).toList();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryColor = Colors.orange.shade600;
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        backgroundColor: Colors.orange.shade600,
-        title: Text("Eleştir - Geliştir",style: TextStyle(color: Colors.white),),
+        backgroundColor: primaryColor,
+        title: const Text("Eleştir - Geliştir", style: TextStyle(color: Colors.white)),
       ),
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverToBoxAdapter(
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                height: 60,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: categories.length,
-                  itemBuilder: (context, index) {
-                    final category = categories[index];
-                    final isSelected = selectedCategory == category;
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                child: SizedBox(
+                  height: 50,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      final category = categories[index];
+                      final isSelected = selectedCategory == category;
 
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedCategory = category;
-                        });
-                      },
-                      child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 6),
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? Colors.orange.shade600
-                              : Colors.grey.shade400,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: isSelected
-                                ? Colors.orange.shade800
-                                : Colors.grey.shade500,
-                            width: 2,
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: ChoiceChip(
+                          label: Text(category),
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black87,
+                            fontWeight: FontWeight.bold,
                           ),
+                          selected: isSelected,
+                          selectedColor: primaryColor,
+                          backgroundColor: Colors.grey.shade200,
+                          onSelected: (selected) {
+                            setState(() {
+                              selectedCategory = category;
+                            });
+                          },
                         ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          category,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
           ];
         },
-        body: ListView.builder(
+        body: filteredPosts.isEmpty
+            ? Center(
+          child: Text(
+            "Henüz gönderi yok.",
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+          ),
+        )
+            : ListView.separated(
           itemCount: filteredPosts.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
           itemBuilder: (context, index) {
             final post = filteredPosts[index];
             return PostCard(post: post);
@@ -168,39 +163,29 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Bottom sheet açma
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
             ),
             builder: (BuildContext context) {
               return Container(
                 constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.75,
-                  maxWidth: MediaQuery.of(context).size.width*1,
+                  maxHeight: MediaQuery.of(context).size.height * 0.8,
                 ),
                 child: PostWrite(
-                  controller: postController,  // Pass the TextEditingController
-                  onPost: addPost,  // Pass the addPost callback
+                  controller: postController,
+                  onPost: addPost,
                 ),
               );
             },
           );
         },
-        backgroundColor: Colors.orange.shade600,
-        child: Icon(
-          size: 32,
-          Icons.help_outline,
-          color: Colors.white,
-        ),
+        backgroundColor: primaryColor,
+        child: const Icon(Icons.add, size: 32, color: Colors.white),
       ),
-
     );
   }
 }

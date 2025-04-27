@@ -1,13 +1,82 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
+<!DOCTYPE html><html lang="tr"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ana Sayfa</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://kit.fontawesome.com/3e9484d64b.js" crossorigin="anonymous"></script>
+  <style id="splash-screen-style">
+    html {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      background-color: #FB8C00;
+          background-size: 100% 100%;
+    }
+
+    .center {
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+    }
+
+    .contain {
+      display:block;
+      width:100%; height:100%;
+      object-fit: contain;
+    }
+
+    .stretch {
+      display:block;
+      width:100%; height:100%;
+    }
+
+    .cover {
+      display:block;
+      width:100%; height:100%;
+      object-fit: cover;
+    }
+
+    .bottom {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      -ms-transform: translate(-50%, 0);
+      transform: translate(-50%, 0);
+    }
+
+    .bottomLeft {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+
+    .bottomRight {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+  </style>
+  <script id="splash-screen-script">
+    function removeSplashFromWeb() {
+      document.getElementById("splash")?.remove();
+      document.getElementById("splash-branding")?.remove();
+      document.body.style.background = "transparent";
+    }
+  </script>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
 </head>
 <body>
+  <picture id="splash">
+      <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
+      <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
+      <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
+  </picture>
     
     <nav>
         <div class="nav-left">
@@ -152,7 +221,7 @@
 
                 <div class="right-event">
                     <h4>Web Sitesi Tasarım</h4>
-                    </i>HTML-CSS</p>
+                    HTML-CSS<p></p>
                     <a href="#">Daha Fazla</a>
                     </div>
             </div>
@@ -165,7 +234,7 @@
 
                 <div class="right-event">
                     <h4>Mobil Tasarım</h4>
-                    </i>Flutter</p>
+                    Flutter<p></p>
                     <a href="#">Daha Fazla</a>
                     </div>
             </div>
@@ -206,8 +275,9 @@
     </div>
 
 <div class="footer">
-    <p>Copyright 2025 - Eleştir&Geliştir AIM DEV.</p>
+    <p>Copyright 2025 - Eleştir&amp;Geliştir AIM DEV.</p>
 </div>
 <script src="script.js"></script>
-</body>
-</html>
+
+
+</body></html>

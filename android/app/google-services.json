@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "329858460105",
+    "project_id": "elestir-gelistir",
+    "storage_bucket": "elestir-gelistir.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:329858460105:android:5f985efc2d83ba803b6018",
+        "android_client_info": {
+          "package_name": "com.example.elestir_gelistir"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB01ScWDj9ucebJK5vWNz-zNO_Znvv4G0I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

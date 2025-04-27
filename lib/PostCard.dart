@@ -6,7 +6,7 @@ import 'CommentSheet.dart';
 class PostCard extends StatefulWidget {
   final Map<String, dynamic> post;
 
-  const PostCard({required this.post});
+  const PostCard({required this.post, super.key});
 
   @override
   State<PostCard> createState() => _PostCardState();
@@ -15,6 +15,8 @@ class PostCard extends StatefulWidget {
 class _PostCardState extends State<PostCard> {
   late int likeCount;
   late bool isLiked;
+
+  final Color primaryColor = Color(0xFFFF944D); // Turuncu
 
   @override
   void initState() {
@@ -35,23 +37,16 @@ class _PostCardState extends State<PostCard> {
       backgroundColor: Colors.white,
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) {
-        return CommentSheet(post: widget.post);
-      },
+      builder: (context) => CommentSheet(post: widget.post),
     );
   }
 
   void sharePost() {
     final postText = widget.post["text"];
-    final content = "$postText";
-
-    Share.share(content);
+    Share.share(postText ?? '');
   }
 
   @override
@@ -59,212 +54,165 @@ class _PostCardState extends State<PostCard> {
     final post = widget.post;
 
     return Card(
-      margin: EdgeInsets.all(12),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Kullanıcı adı ve tarih
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(backgroundColor: Colors.grey.shade300),
-                    SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(post["username"],
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(post["date"],
-                            style: TextStyle(fontSize: 12, color: Colors.grey)),
-                      ],
-                    ),
-                  ],
-                ),
-
-                // İlerleme durumu ve üç nokta menüsü
-                Row(
-                  children: [
-                    Row(
-                      children: List.generate(3, (index) {
-                        final int currentStep = int.tryParse(widget.post["progressStep"].toString()) ?? 0;
-                        bool isFilled = index <= currentStep;
-
-                        IconData stepIcon;
-                        String label;
-
-                        switch (index) {
-                          case 0:
-                            stepIcon = Icons.help_outline;
-                            label = "Yardım";
-                            break;
-                          case 1:
-                            stepIcon = Icons.autorenew;
-                            label = "İşlemde";
-                            break;
-                          case 2:
-                            stepIcon = Icons.check_circle_outline;
-                            label = "Çözüldü";
-                            break;
-                          default:
-                            stepIcon = Icons.circle;
-                            label = "";
-                        }
-
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: Column(
-                            children: [
-                              Icon(
-                                stepIcon,
-                                size: 16,
-                                color: isFilled ? Colors.orange : Colors.grey.shade400,
-                              ),
-                              SizedBox(height: 2),
-                              Icon(
-                                Icons.circle,
-                                size: 8,
-                                color: isFilled ? Colors.orange : Colors.grey.shade300,
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                label,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: isFilled ? Colors.orange : Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ),
-                    SizedBox(width: 8),
-
-                    // Menü
-                    PopupMenuButton<String>(
-                      icon: Icon(Icons.more_vert),
-                      onSelected: (value) {
-                        switch (value) {
-                          case "edit":
-                            break;
-                          case "delete":
-                            break;
-                          case "report":
-                            break;
-                        }
-                      },
-                      itemBuilder: (BuildContext context) {
-                        return [
-                          PopupMenuItem<String>(
-                            value: "edit",
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, size: 18, color: Colors.black),
-                                SizedBox(width: 8),
-                                Text("Düzenle"),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem<String>(
-                            value: "delete",
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete, size: 18, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text("Sil"),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem<String>(
-                            value: "report",
-                            child: Row(
-                              children: [
-                                Icon(Icons.report_problem, size: 18, color: Colors.orange),
-                                SizedBox(width: 8),
-                                Text("Şikayet Et"),
-                              ],
-                            ),
-                          ),
-                        ];
-                      },
-                    ),
-                  ],
-                ),
-              ],
+            _buildHeader(post),
+            const SizedBox(height: 12),
+            Text(
+              post["text"] ?? "",
+              style: const TextStyle(fontSize: 16, height: 1.4),
             ),
-
-            SizedBox(height: 10),
-
-            // İçerik
-            Text(post["text"] ?? "", style: TextStyle(fontSize: 16)),
-            SizedBox(height: 6),
-
-            // Opsiyonel görsel
-            if (post.containsKey("image"))
-              Container(
-                margin: EdgeInsets.only(top: 10),
-                height: 200,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  image: DecorationImage(
-                    image: AssetImage(post["image"]),
-                    fit: BoxFit.cover,
-                  ),
+            if (post.containsKey("image")) ...[
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  post["image"],
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
                 ),
               ),
+            ],
+            const SizedBox(height: 12),
+            _buildActions(post),
+          ],
+        ),
+      ),
+    );
+  }
 
-            SizedBox(height: 10),
-
-            // Etkileşim simgeleri
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                GestureDetector(
-                  onTap: toggleLike,
-                  child: Row(
-                    children: [
-                      Icon(
-                        isLiked
-                            ? Icons.thumb_up_alt
-                            : Icons.thumb_up_alt_outlined,
-                        color: isLiked ? Colors.orange.shade600 : Colors.black,
-                        size: 20,
-                      ),
-                      SizedBox(width: 4),
-                      Text('$likeCount'),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: showComments,
-                  child: Row(
-                    children: [
-                      Icon(Icons.comment_outlined, size: 20),
-                      SizedBox(width: 4),
-                      Text('${post["commentList"].length}'),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: sharePost,
-                  child: Row(
-                    children: [
-                      Icon(Icons.share_outlined, size: 20),
-                      SizedBox(width: 4),
-                      Text('${post["shares"]}'),
-                    ],
-                  ),
-                ),
-              ],
+  Widget _buildHeader(Map<String, dynamic> post) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          backgroundColor: Colors.orange.shade100,
+          child: Text(
+            (post["username"] ?? "U").substring(0, 1).toUpperCase(),
+            style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                post["username"] ?? "Kullanıcı",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                post["date"] ?? "",
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+        _buildProgress(post),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) {
+            // Menü işlemleri burada olacak
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: "edit",
+              child: ListTile(
+                leading: Icon(Icons.edit, size: 20),
+                title: Text('Düzenle'),
+              ),
+            ),
+            const PopupMenuItem(
+              value: "delete",
+              child: ListTile(
+                leading: Icon(Icons.delete, size: 20, color: Colors.red),
+                title: Text('Sil'),
+              ),
+            ),
+            const PopupMenuItem(
+              value: "report",
+              child: ListTile(
+                leading: Icon(Icons.report_problem, size: 20, color: Colors.orange),
+                title: Text('Şikayet Et'),
+              ),
             ),
           ],
         ),
+      ],
+    );
+  }
+
+  Widget _buildProgress(Map<String, dynamic> post) {
+    final int currentStep = int.tryParse(post["progressStep"].toString()) ?? 0;
+
+    List<IconData> stepIcons = [
+      Icons.help_outline,
+      Icons.autorenew,
+      Icons.check_circle_outline,
+    ];
+
+    return Row(
+      children: List.generate(3, (index) {
+        bool isActive = index <= currentStep;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Icon(
+            stepIcons[index],
+            size: 18,
+            color: isActive ? primaryColor : Colors.grey.shade300,
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildActions(Map<String, dynamic> post) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildAction(
+          icon: isLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
+          label: '$likeCount',
+          color: isLiked ? primaryColor : Colors.black,
+          onTap: toggleLike,
+        ),
+        _buildAction(
+          icon: Icons.comment_outlined,
+          label: '${post["commentList"].length}',
+          color: Colors.black,
+          onTap: showComments,
+        ),
+        _buildAction(
+          icon: Icons.share_outlined,
+          label: '${post["shares"]}',
+          color: Colors.black,
+          onTap: sharePost,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAction({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, size: 22, color: color),
+          const SizedBox(width: 4),
+          Text(label, style: const TextStyle(fontSize: 14)),
+        ],
       ),
     );
   }

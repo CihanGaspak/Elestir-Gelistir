@@ -1,12 +1,73 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:elestir_gelistir/mainpage.dart'; // MainPage dosyanı import et
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
   bool showLogin = true;
+
+  final TextEditingController loginEmailController = TextEditingController();
+  final TextEditingController loginPasswordController = TextEditingController();
+  final TextEditingController registerEmailController = TextEditingController();
+  final TextEditingController registerPasswordController = TextEditingController();
+  final TextEditingController registerUsernameController = TextEditingController();
+
+  @override
+  void dispose() {
+    loginEmailController.dispose();
+    loginPasswordController.dispose();
+    registerEmailController.dispose();
+    registerPasswordController.dispose();
+    registerUsernameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> signIn(String email, String password) async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Giriş Başarılı!')),
+      );
+
+      // Başarılı giriş sonrası MainPage'e geç
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainPage()),
+      );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Giriş Hatası: ${e.message}')),
+      );
+    }
+  }
+
+  Future<void> register(String email, String password) async {
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kayıt Başarılı! Giriş yapabilirsiniz.')),
+      );
+      setState(() {
+        showLogin = true;
+      });
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Kayıt Hatası: ${e.message}')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +107,7 @@ class _LoginPageState extends State<LoginPage> {
               width: double.maxFinite,
               padding: const EdgeInsets.symmetric(vertical: 24),
               decoration: BoxDecoration(
-                color: const Color(0xFFFF944D),
+                color: Colors.orange.shade600,
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Column(
@@ -55,13 +116,10 @@ class _LoginPageState extends State<LoginPage> {
                     "Merhaba, Hoşgeldin!",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                        fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const SizedBox(height: 8),
-                  const Text("Hesabın yok mu?",
-                      style: TextStyle(color: Colors.white)),
+                  const Text("Hesabın yok mu?", style: TextStyle(color: Colors.white)),
                   const SizedBox(height: 8),
                   OutlinedButton(
                     onPressed: () {
@@ -72,69 +130,55 @@ class _LoginPageState extends State<LoginPage> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            8), // <== Burayı sen seçebilirsin
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                     child: const Text(
                       "Kayıt Ol",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 32),
-            const Text("Giriş Yap",
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+            const Text("Giriş Yap", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              controller: loginEmailController,
+              decoration: const InputDecoration(
                 hintText: 'E-Posta',
-                hintStyle: TextStyle(color: Colors.grey),
                 suffixIcon: Icon(Icons.email),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 0.5),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.orange, width: 1.5),
-                ),
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 8),
-            const TextField(
+            TextField(
+              controller: loginPasswordController,
               obscureText: true,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Şifre',
-                hintStyle: TextStyle(color: Colors.grey),
                 suffixIcon: Icon(Icons.lock),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 0.5),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.orange, width: 1.5),
-                ),
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 8),
             const SizedBox(height: 16),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF944D),
+                backgroundColor: Colors.orange.shade600,
                 minimumSize: const Size.fromHeight(48),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              onPressed: () {},
+              onPressed: () async {
+                await signIn(
+                  loginEmailController.text.trim(),
+                  loginPasswordController.text.trim(),
+                );
+              },
               child: const Text(
                 "Giriş Yap",
                 style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
+                    color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -155,82 +199,60 @@ class _LoginPageState extends State<LoginPage> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            const Text("Kayıt Ol",
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+            const Text("Kayıt Ol", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              controller: registerUsernameController,
+              decoration: const InputDecoration(
                 hintText: 'Kullanıcı Adı',
-                hintStyle: TextStyle(color: Colors.grey),
-                // Yazı rengini gri yapıyoruz
-                suffixIcon: Icon(
-                  Icons.person,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 0.5),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.orange, width: 1.5),
-                ),
+                suffixIcon: Icon(Icons.person),
+                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 8),
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              controller: registerEmailController,
+              decoration: const InputDecoration(
                 hintText: 'E-Posta',
-                hintStyle: TextStyle(color: Colors.grey),
                 suffixIcon: Icon(Icons.email),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 0.5),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.orange, width: 1.5),
-                ),
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 8),
-            const TextField(
+            TextField(
+              controller: registerPasswordController,
               obscureText: true,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Şifre',
-                hintStyle: TextStyle(color: Colors.grey),
                 suffixIcon: Icon(Icons.lock),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 0.5),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.orange, width: 1.5),
-                ),
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
             const SizedBox(height: 16),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF944D),
+                backgroundColor: Colors.orange.shade600,
                 minimumSize: const Size.fromHeight(48),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              onPressed: () {},
+              onPressed: () async {
+                await register(
+                  registerEmailController.text.trim(),
+                  registerPasswordController.text.trim(),
+                );
+              },
               child: const Text(
                 "Kayıt Ol",
                 style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
+                    color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
-            const SizedBox(
-              height: 32,
-            ),
+            const SizedBox(height: 32),
             Container(
               width: double.maxFinite,
               padding: const EdgeInsets.symmetric(vertical: 24),
               decoration: BoxDecoration(
-                color: const Color(0xFFFF944D),
+                color: Colors.orange.shade600,
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Column(
@@ -239,13 +261,10 @@ class _LoginPageState extends State<LoginPage> {
                     "Tekrar, Hoşgeldin!",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                        fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const SizedBox(height: 8),
-                  const Text("Hesabın var mı?",
-                      style: TextStyle(color: Colors.white)),
+                  const Text("Hesabın var mı?", style: TextStyle(color: Colors.white)),
                   const SizedBox(height: 8),
                   OutlinedButton(
                     onPressed: () {
@@ -256,14 +275,12 @@ class _LoginPageState extends State<LoginPage> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            8), // <== Burayı sen seçebilirsin
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                     child: const Text(
                       "Giriş Yap",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],

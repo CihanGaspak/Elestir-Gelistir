@@ -1,9 +1,11 @@
-import 'package:elestir_gelistir/loginpage.dart';
-import 'package:elestir_gelistir/profilpage.dart';
 import 'package:flutter/material.dart';
-import 'homepage.dart'; // HomePage burada tanımlı olacak
+import 'package:firebase_core/firebase_core.dart'; // Firebase core import
+import 'package:elestir_gelistir/splash_screen.dart'; // SplashScreen import
+// Eğer firebase_options.dart dosyan varsa onu da import edeceğiz. (firebase kurulumunda gelmiş olmalı)
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // Firebase burada başlatılıyor
   runApp(const MyApp());
 }
 
@@ -16,77 +18,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Eleştir - Geliştir',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         useMaterial3: true,
       ),
-      home: MainPage(), // <-- Ana sayfa artık MainPage olacak
+      home: const SplashScreen(), // Splash ekranı burada açılıyor
     );
   }
 }
-
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
-
-  @override
-  State<MainPage> createState() => _MainPageState();
-}
-
-class _MainPageState extends State<MainPage> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _pages = [
-    const HomePage(),
-    const ActivitiesPage(),
-    LoginPage(),
-    const ProfilePage(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.orange.shade700,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Ana Sayfa',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Keşfet',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Bildirimler',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profil',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Geçici sayfalar - eksik olursa hata verir
-class ActivitiesPage extends StatelessWidget {
-  const ActivitiesPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text("Etkinlikler Sayfası"));
-  }
-}
-
