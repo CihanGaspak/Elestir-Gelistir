@@ -1,0 +1,86 @@
+[
+  {
+    "username": "Cihan Gaspak",
+    "date": "2024-03-24 14:30",
+    "text": "HTML & CSS Eğitim Kaynağı",
+    "likes": 85,
+    "comments": 12,
+    "shares": 220,
+    "category": "Eğitim",
+    "progressStep": 1,
+    "commentList": [
+      {
+        "text": "Harika bir gönderi!",
+        "name": "Ali",
+        "surname": "Yılmaz",
+        "date": "2025-04-07",
+        "likes": 3
+      },
+      {
+        "text": "Katılıyorum!",
+        "name": "Zeynep",
+        "surname": "Kaya",
+        "date": "2025-04-06",
+        "likes": 1
+      }
+    ]
+  },
+  {
+    "username": "Zeynep Kaya",
+    "date": "2024-03-25 10:00",
+    "text": "Yeni başlayanlar için Java rehberi",
+    "image": "assets/education.png",
+    "likes": 60,
+    "comments": 8,
+    "shares": 110,
+    "category": "Eğitim",
+    "progressStep": 1,
+    "commentList": []
+  },
+  {
+    "username": "Ahmet Özkan",
+    "date": "2025-04-26 09:30",
+    "text": "Evde kendi tamirat işlerinizi yaparken dikkat ettiğiniz en önemli şey nedir?",
+    "likes": 9,
+    "comments": 2,
+    "shares": 1,
+    "category": "Tamirat",
+    "progressStep": 1,
+    "commentList": []
+  },
+  {
+    "username": "Ali Demir",
+    "date": "2024-03-26 15:00",
+    "text": "Dış cephe mantolama tavsiyesi",
+    "image": "assets/construction.png",
+    "likes": 32,
+    "comments": 3,
+    "shares": 10,
+    "category": "İnşaat",
+    "progressStep": 2,
+    "commentList": []
+  },
+  {
+    "username": "Ayşe Yıldız",
+    "date": "2025-04-26 14:00",
+    "text": "Spor yaparken motivasyonunuzu nasıl koruyorsunuz?",
+    "likes": 15,
+    "comments": 5,
+    "shares": 3,
+    "category": "Spor",
+    "progressStep": 0,
+    "commentList": []
+  },
+  {
+    "username": "Mehmet",
+    "date": "2025-04-06 12:00",
+    "text": "Araç bakımı hakkında bazı önerilerim var.",
+    "image": "assets/bakim.png",
+    "likes": 7,
+    "comments": 2,
+    "shares": 1,
+    "category": "Araç Bakım",
+    "progressStep": 0,
+    "commentList": []
+  }
+]
