@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ana Sayfa</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/3e9484d64b.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <nav>
+        <div class="nav-left">
+            <a href="index.html">
+                <img src="images/logo.png" class="logo" alt="Logo">
+            </a>
+            <ul>
+                <li><img src="images/notification.png" alt="Notifications"></li>
+                <li><img src="images/inbox.png" alt="Inbox"></li>
+                <li><img src="images/video.png" alt="Videos"></li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <div class="search-box">
+                <img src="images/search.png" alt="Search Icon">
+                <input type="text" placeholder="Ara">
+            </div>
+            <div class="nav-user-icon online settings-menu-btn">
+                <img src="images/profile-pic.png" alt="User Profile">
+            </div>
+        </div>
+        <div class="settings-menu">
+            <div id="dark-btn">
+                <span></span>
+            </div>
+            <div class="settings-menu-inner">
+                <div class="user-profile">
+                    <img src="images/profile-pic.png">
+                    <div>
+                        <p>Cihan Gaspak</p>
+                        <a href="profile.html">Profilini Gör</a>
+                    </div>
+                </div>
+                <hr>
+                <div class="user-profile">
+                    <img src="images/feedback.png">
+                    <div>
+                        <p>Geri Bildirim Ver</p>
+                        <a href="#">Yeni tasarımı geliştirmemize yardımcı olun</a>
+                    </div>
+                </div>
+                <hr>
+                <div class="settings-links">
+                    <img src="images/setting.png" class="settings-icon">
+                    <a href="#">Ayarlar ve Gizlilik <img src="images/arrow.png" width="10px"></a>
+                </div>
+                <div class="settings-links">
+                    <img src="images/help.png" class="settings-icon">
+                    <a href="#">Yardım ve Destek <img src="images/arrow.png" width="10px"></a>
+                </div>
+                <div class="settings-links">
+                    <img src="images/display.png" class="settings-icon">
+                    <a href="#">Ekran ve Erişilebilirlik <img src="images/arrow.png" width="10px"></a>
+                </div>
+                <div class="settings-links">
+                    <img src="images/logout.png" class="settings-icon">
+                    <a href="#" id="logout-link">Çıkış Yap <img src="images/arrow.png" width="10px"></a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="left-sidebar">
+            <div class="shortcut-links">
+                <p>Senin Paylaşımların</p>
+                <a href="#"><img src="images/shortcut-1.png">Kışisel Asistanımı Nasıl Geliştirebilirim?</a>
+                <a href="#"><img src="images/shortcut-1.png">HTML CSS Eğitim Kaynağı</a>
+                <a href="#"><img src="images/shortcut-1.png">Dersten  Nasıl Geçebilirim?</a>
+                <a href="#"><img src="images/shortcut-1.png">Websitemi Yaparken Karşılaşacağım Sorunlar?</a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="filter-container">
+                <button class="filter-button active" onclick="filterPosts('all')">Tümü</button>
+                <button class="filter-button" onclick="filterPosts('egitim')">Öğretim</button>
+                <button class="filter-button" onclick="filterPosts('insaat')">İnşaat</button>
+                <button class="filter-button" onclick="filterPosts('arac')">Araç Bakım</button>
+                <button class="filter-button" onclick="filterPosts('teknoloji')">Teknoloji</button>
+                <button class="filter-button" onclick="filterPosts('gundelik')">Gündelik</button>
+            </div>
+            <div class="write-post-container">
+                <div class="user-profile">
+                    <img src="images/profile-pic.png">
+                    <div>
+                        <p>Cihan Gaspak</p>
+                        <small>Herkese Açık <i class="fa-solid fa-caret-down"></i></small>
+                    </div>
+                </div>
+                <div class="post-input-container">
+                    <textarea rows="3" id="post-content" placeholder="Kafandaki soru işaretleri nedir?"></textarea>
+                    <div class="add-post-links">
+                        <a href="#"><img src="images/photo.png"> Fotoğraf/Video</a>
+                    </div>
+                    <button id="send-post-btn" class="btn">Gönder</button>
+                </div>
+            </div>
+            <div class="posts-container"></div>
+            <div class="load-more-container">
+                <button type="button" class="load-more-btn">Daha Fazla Yükle</button>
+            </div>
+        </div>
+
+        <div class="right-sidebar">
+            <div class="sidebar-title">
+                <h4>Reklam</h4>
+                <a href="#">Kapat</a>
+            </div>
+            <img src="images/honda_ads.jpg" class="sidebar-ads">
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Copyright 2025 - Eleştir&Geliştir AIM DEV.</p>
+    </div>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
