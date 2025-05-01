@@ -1,0 +1,372 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+class PostDetailPage extends StatefulWidget {
+  final Map<String, dynamic> post;
+
+  const PostDetailPage({super.key, required this.post});
+
+  @override
+  State<PostDetailPage> createState() => _PostDetailPageState();
+}
+
+class _PostDetailPageState extends State<PostDetailPage> {
+  late DocumentReference postRef;
+  final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+  int views = 0;
+  int likeCount = 0;
+  List<String> likedBy = [];
+  List<String> savedBy = [];
+  List<Map<String, dynamic>> comments = [];
+  List<TextEditingController> stepNoteControllers =
+  List.generate(3, (_) => TextEditingController());
+
+  @override
+  void initState() {
+    super.initState();
+    postRef = FirebaseFirestore.instance.collection('posts').doc(widget.post['id']);
+    _incrementViews();
+    _fetchPostData();
+    _loadComments();
+  }
+
+  Future<void> _incrementViews() async {
+    await postRef.update({'views': FieldValue.increment(1)});
+    final snapshot = await postRef.get();
+    if (snapshot.exists) {
+      setState(() {
+        views = (snapshot.data() as Map<String, dynamic>)['views'] ?? 0;
+      });
+    }
+  }
+
+  Future<void> _fetchPostData() async {
+    final snapshot = await postRef.get();
+    if (snapshot.exists) {
+      final data = snapshot.data() as Map<String, dynamic>;
+      setState(() {
+        likeCount = data['likesCount'] ?? 0;
+        likedBy = List<String>.from(data['likedBy'] ?? []);
+        savedBy = List<String>.from(data['savedBy'] ?? []);
+        stepNoteControllers[0].text = data['step1Note'] ?? '';
+        stepNoteControllers[1].text = data['step2Note'] ?? '';
+        stepNoteControllers[2].text = data['step3Note'] ?? '';
+      });
+    }
+  }
+
+  Future<void> _loadComments() async {
+    final query = await postRef.collection('comments').orderBy('date', descending: true).get();
+    setState(() {
+      comments = query.docs.map((doc) {
+        final c = doc.data();
+        c['id'] = doc.id;
+        return c;
+      }).toList();
+    });
+  }
+
+  Future<void> _toggleCommentLike(String commentId, List<String> likedBy) async {
+    if (currentUserId == null) return;
+    final ref = postRef.collection('comments').doc(commentId);
+    final isLiked = likedBy.contains(currentUserId);
+    await ref.update({
+      'likedBy': isLiked
+          ? FieldValue.arrayRemove([currentUserId])
+          : FieldValue.arrayUnion([currentUserId])
+    });
+    _loadComments();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final post = widget.post;
+    final authorId = post['authorId'] ?? '';
+    final isOwner = currentUserId == authorId;
+    final author = post['authorName'] ?? 'Kullanıcı';
+    final content = post['content']?.toString().trim() ?? '';
+    final category = post['category']?.toString().capitalize() ?? '';
+    final photoUrl = post['authorPhotoUrl'] ?? '';
+    final step = post['progressStep'] ?? 0;
+
+    final isLiked = currentUserId != null && likedBy.contains(currentUserId);
+    final isSaved = currentUserId != null && savedBy.contains(currentUserId);
+
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(
+        title: const Text('Gönderi Detayı'),
+        backgroundColor: Colors.orange.shade600,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundImage: photoUrl.startsWith('assets/')
+                        ? AssetImage(photoUrl)
+                        : NetworkImage(photoUrl) as ImageProvider,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(author, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Spacer(),
+                  Icon(_getCategoryIcon(category), color: Colors.orange),
+                  const SizedBox(width: 4),
+                  Text(category, style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(content, style: const TextStyle(fontSize: 16, height: 1.4)),
+              const SizedBox(height: 12),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildAction(
+                    isLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined, // 👈 ikon artık duruma göre dolu/boş
+                    likeCount.toString(),
+                        () async {
+                      if (currentUserId == null) return;
+
+                      final isAlreadyLiked = likedBy.contains(currentUserId);
+                      final update = isAlreadyLiked
+                          ? {
+                        'likesCount': FieldValue.increment(-1),
+                        'likedBy': FieldValue.arrayRemove([currentUserId])
+                      }
+                          : {
+                        'likesCount': FieldValue.increment(1),
+                        'likedBy': FieldValue.arrayUnion([currentUserId])
+                      };
+
+                      await postRef.update(update);
+                      _fetchPostData();   // beğeni sayısını ve ikon durumunu yenile
+                    },
+                    isLiked,              // 👈 aktif parametresine isLiked gönderildi
+                  ),
+
+                  _buildAction(Icons.comment_outlined, comments.length.toString(), () {}),
+                  _buildAction(Icons.share_outlined, ' ', () {}),
+                  _buildAction(Icons.bookmark_outline, ' ', () async {
+                    if (currentUserId == null) return;
+                    final update = isSaved
+                        ? {'savedBy': FieldValue.arrayRemove([currentUserId])}
+                        : {'savedBy': FieldValue.arrayUnion([currentUserId])};
+                    await postRef.update(update);
+                    _fetchPostData();
+                  }, isSaved),
+                  _buildAction(Icons.remove_red_eye_outlined, views.toString(), () {}, false),
+                ],
+              ),
+              const Divider(height: 32),
+              Column(
+                children: List.generate(3, (i) {
+                  final reached = step >= i;
+                  final isCurrent = step == i;
+
+                  final stageTitles = ['Eleştir', 'Düşündür', 'Geliştir'];
+
+                  return Card(
+                    elevation: 2,
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    [Icons.lightbulb, Icons.build, Icons.check_circle][i],
+                                    color: reached ? Colors.orange : Colors.grey.shade300,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    reached ? stageTitles[i] : 'Henüz bu aşamaya geçilmedi',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: reached ? Colors.black : Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (isOwner && reached)
+                                IconButton(
+                                  icon: const Icon(Icons.edit, size: 20, color: Colors.orange),
+                                  onPressed: () async {
+                                    final newNote = await showDialog<String>(
+                                      context: context,
+                                      builder: (context) {
+                                        final controller = TextEditingController(text: stepNoteControllers[i].text);
+                                        return AlertDialog(
+                                          title: Text('${stageTitles[i]} Notunu Düzenle'),
+                                          content: TextField(
+                                            controller: controller,
+                                            maxLines: null,
+                                            decoration: const InputDecoration(hintText: 'Notunuzu girin...'),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: const Text('İptal'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context, controller.text.trim()),
+                                              child: const Text('Kaydet'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+
+                                    if (newNote != null) {
+                                      final field = 'step${i + 1}Note';
+                                      await postRef.update({
+                                        field: newNote,
+                                        'progressStep': newNote.isEmpty ? i : (i + 1 > 2 ? 3 : i + 1),
+                                      });
+                                      _fetchPostData();
+                                      setState(() => widget.post['progressStep'] = newNote.isEmpty ? i : (i + 1 > 2 ? 3 : i + 1));
+                                    }
+                                  },
+                                ),
+                            ],
+                          ),
+                          if (reached && stepNoteControllers[i].text.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                stepNoteControllers[i].text,
+                                style: const TextStyle(color: Colors.black87),
+                              ),
+                            )
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              const Divider(height: 32),
+              const Text("Yorumlar", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: comments.length,
+                separatorBuilder: (_, __) => const Divider(),
+                itemBuilder: (context, index) {
+                  final c = comments[index];
+                  final likedBy = List<String>.from(c['likedBy'] ?? []);
+                  final isLiked = currentUserId != null && likedBy.contains(currentUserId);
+                  final timestamp = c['date'] as Timestamp?;
+                  final dateStr = timestamp != null ? DateFormat('dd.MM.yyyy HH:mm').format(timestamp.toDate()) : '';
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage: (c['authorPhotoUrl'] ?? '').startsWith('assets/')
+                            ? AssetImage(c['authorPhotoUrl']) as ImageProvider
+                            : NetworkImage(c['authorPhotoUrl'] ?? ''),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Kullanıcı adı ve yorum aynı satırda
+                            RichText(
+                              text: TextSpan(
+                                style: const TextStyle(color: Colors.black),
+                                children: [
+                                  TextSpan(
+                                    text: (c['authorName'] ?? 'Kullanıcı') + ' ',
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  TextSpan(
+                                    text: c['text'] ?? '',
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  dateStr,
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                ),
+                                GestureDetector(
+                                  onTap: () => _toggleCommentLike(c['id'], likedBy),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        isLiked ? Icons.favorite : Icons.favorite_border,
+                                        color: isLiked ? Colors.red : Colors.grey,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text('${likedBy.length}'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAction(IconData icon, String label, VoidCallback onTap, [bool active = false]) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Icon(icon, color: active ? Colors.orange : Colors.black),
+          if (label.isNotEmpty) Text(label),
+        ],
+      ),
+    );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'eğitim':
+        return Icons.school;
+      case 'spor':
+        return Icons.fitness_center;
+      case 'tamirat':
+        return Icons.build;
+      case 'araç bakım':
+        return Icons.car_repair;
+      default:
+        return Icons.category;
+    }
+  }
+}
+
+extension StringExtension on String {
+  String capitalize() => isEmpty ? '' : this[0].toUpperCase() + substring(1).toLowerCase();
+}

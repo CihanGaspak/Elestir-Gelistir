@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'PostCard.dart';
-import 'PostCWriteCard.dart';
+import 'PostWriteCard.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -14,15 +14,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final ScrollController _scrollCtl = ScrollController();
   final List<String> categories = [
     'Tümü',
     'Eğitim',
     'Spor',
     'Tamirat',
     'Araç Bakım',
+    'Sağlık',
+    'Teknoloji',
+    'Kişisel Gelişim',
+    'Sanat',
+    'Yazılım',
   ];
+
   String selectedCategory = 'Tümü';
   final TextEditingController postController = TextEditingController();
+  List<Map<String, dynamic>> allPosts = [];
 
   Future<void> addPost(String text, String category, XFile? imageFile) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -55,6 +63,7 @@ class _HomePageState extends State<HomePage> {
     final newPost = {
       'authorId': user.uid,
       'authorName': username,
+      'authorPhotoUrl': photoUrl,
       'category': category.toLowerCase(),
       'content': text,
       'date': FieldValue.serverTimestamp(),
@@ -63,6 +72,7 @@ class _HomePageState extends State<HomePage> {
       'commentsCount': 0,
       'views': 0,
       'likedBy': [],
+      'savedBy': [],
       'progressStep': 0,
     };
 
@@ -85,8 +95,39 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    FirebaseFirestore.instance
+        .collection('posts')
+        .orderBy('date', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+      final newPosts = snapshot.docs.map((d) {
+        final data = d.data() as Map<String, dynamic>;
+        data['id'] = d.id;
+        return data;
+      }).toList();
+
+      if (mounted) {
+        setState(() {
+          if (allPosts.isEmpty || allPosts.first['id'] != newPosts.first['id']) {
+            allPosts = newPosts;
+          }
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final primaryColor = Colors.orange.shade600;
+    final sel = selectedCategory.toLowerCase();
+    final filteredPosts = sel == 'tümü'
+        ? allPosts
+        : allPosts
+        .where((p) => (p['category'] ?? '').toLowerCase() == sel)
+        .toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -96,7 +137,6 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
-          // Kategori Çipleri
           SizedBox(
             height: 50,
             child: ListView.builder(
@@ -119,63 +159,32 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ),
-
-          // Postlar
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('posts')
-                  .orderBy('date', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 32),
-                      child: Text(
-                        'Henüz gönderi yok.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ),
-                  );
-                }
-
-                final docs = snapshot.data!.docs;
-                final all = docs.map((d) {
-                  final m = d.data() as Map<String, dynamic>;
-                  m['id'] = d.id;
-                  return m;
-                }).toList();
-
-                final sel = selectedCategory.toLowerCase();
-                final posts = sel == 'tümü'
-                    ? all
-                    : all.where((p) =>
-                (p['category']?.toString().toLowerCase() ?? '') == sel)
-                    .toList();
-
-                return ListView.separated(
-                  padding: const EdgeInsets.only(top: 8),
-                  itemCount: posts.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 1),
-                  itemBuilder: (context, index) {
-                    return PostCard(post: posts[index]);
-                  },
-                );
+            child: filteredPosts.isEmpty
+                ? Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 32),
+                child: Text(
+                  'Henüz gönderi yok.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ),
+            )
+                : ListView.separated(
+              controller: _scrollCtl,
+              padding: const EdgeInsets.only(top: 8),
+              itemCount: filteredPosts.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 1),
+              itemBuilder: (context, index) {
+                return PostCard(post: filteredPosts[index]);
               },
             ),
           ),
         ],
       ),
-
-      // Yeni Gönderi FAB
       floatingActionButton: FloatingActionButton(
         backgroundColor: primaryColor,
         child: const Icon(Icons.add, size: 30),
@@ -193,13 +202,20 @@ class _HomePageState extends State<HomePage> {
             child: PostWrite(
               controller: postController,
               onPost: (text, category) async {
-                Navigator.of(ctx).pop(); // önce modal'ı kapat
-                await addPost(text, category, null); // sonra postu ekle
+                Navigator.of(ctx).pop();
+                await addPost(text, category, null);
               },
             ),
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollCtl.dispose();
+    postController.dispose();
+    super.dispose();
   }
 }
