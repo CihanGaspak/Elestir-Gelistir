@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class CommentSheet extends StatefulWidget {
@@ -6,170 +8,163 @@ class CommentSheet extends StatefulWidget {
   const CommentSheet({Key? key, required this.post}) : super(key: key);
 
   @override
-  _CommentSheetState createState() => _CommentSheetState();
+  State<CommentSheet> createState() => _CommentSheetState();
 }
 
 class _CommentSheetState extends State<CommentSheet> {
   final TextEditingController _commentController = TextEditingController();
-  late List<Map<String, dynamic>> comments;
+  final user = FirebaseAuth.instance.currentUser;
 
-  @override
-  void initState() {
-    super.initState();
-    comments = List<Map<String, dynamic>>.from(
-      widget.post["commentList"] ?? [],
-    );
+  Future<void> _addComment() async {
+    final text = _commentController.text.trim();
+    if (text.isEmpty || user == null) return;
 
-    // Her yorum için 'liked' alanı yoksa ekle
-    for (var comment in comments) {
-      comment["liked"] ??= false;
-    }
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .get();
+
+    final username = userDoc['username'] ?? 'Kullanıcı';
+    final photoUrl = userDoc['photoUrl'] ?? '';
+
+    final newComment = {
+      'text': text,
+      'authorId': user!.uid,
+      'authorName': username,
+      'authorPhotoUrl': photoUrl,
+      'date': FieldValue.serverTimestamp(),
+      'likes': 0,
+      'likedBy': [],
+    };
+
+    final postRef = FirebaseFirestore.instance.collection('posts').doc(widget.post['id']);
+
+    await postRef.collection('comments').add(newComment);
+
+    // Yorum sayısını artır
+    await postRef.update({'commentsCount': FieldValue.increment(1)});
+
+    // En son input temizlenir
+    _commentController.clear();
   }
 
-  void toggleLike(int index) {
-    setState(() {
-      bool liked = comments[index]["liked"];
-      comments[index]["liked"] = !liked;
-      if (liked) {
-        comments[index]["likes"] = (comments[index]["likes"] ?? 1) - 1;
-      } else {
-        comments[index]["likes"] = (comments[index]["likes"] ?? 0) + 1;
-      }
+  Future<void> _toggleLike(DocumentReference commentRef, List likedBy, int likes) async {
+    final uid = user?.uid;
+    if (uid == null) return;
+
+    final isLiked = likedBy.contains(uid);
+
+    await commentRef.update({
+      'likes': FieldValue.increment(isLiked ? -1 : 1),
+      'likedBy': isLiked
+          ? FieldValue.arrayRemove([uid])
+          : FieldValue.arrayUnion([uid])
     });
-  }
-
-  void addComment() {
-    final newCommentText = _commentController.text.trim();
-    if (newCommentText.isNotEmpty) {
-      final newComment = {
-        "text": newCommentText,
-        "name": "Sen",
-        "surname": "Kullanıcı",
-        "date": DateTime.now().toString().split(" ")[0],
-        "likes": 0,
-        "liked": false,
-      };
-
-      setState(() {
-        comments.add(newComment);
-        widget.post["commentList"] = comments;
-        widget.post["comments"] = comments.length;
-        _commentController.clear();
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16,
-        right: 16,
-        top: 16,
-      ),
+      padding: MediaQuery.of(context).viewInsets,
       child: SizedBox(
         height: 400,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Text("Yorumlar",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ),
-            SizedBox(height: 10),
+            const SizedBox(height: 8),
+            const Text("Yorumlar", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Divider(),
             Expanded(
-              child: comments.isEmpty
-                  ? const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Henüz yorum yapılmadı.",
-                      style: TextStyle(color: Colors.grey)),
-                  SizedBox(height: 10),
-                ],
-              )
-                  : ListView.builder(
-                itemCount: comments.length,
-                itemBuilder: (context, index) {
-                  final comment = comments[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: Colors.grey.shade300,
-                          child: Icon(Icons.person, color: Colors.white),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              RichText(
-                                text: TextSpan(
-                                  style: TextStyle(color: Colors.black),
-                                  children: [
-                                    TextSpan(
-                                      text:
-                                      "${comment["name"]} ${comment["surname"]} ",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    TextSpan(
-                                      text: comment["text"],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                comment["date"],
-                                style: TextStyle(
-                                    fontSize: 12, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Column(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('posts')
+                    .doc(widget.post['id'])
+                    .collection('comments')
+                    .orderBy('date', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final comments = snapshot.data!.docs;
+
+                  if (comments.isEmpty) {
+                    return const Center(child: Text("Henüz yorum yok."));
+                  }
+
+                  return ListView.builder(
+                    itemCount: comments.length,
+                    itemBuilder: (context, index) {
+                      final doc = comments[index];
+                      final data = doc.data() as Map<String, dynamic>;
+                      final likedBy = List<String>.from(data['likedBy'] ?? []);
+                      final isLiked = user != null && likedBy.contains(user!.uid);
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            GestureDetector(
-                              onTap: () => toggleLike(index),
-                              child: Icon(
-                                comment["liked"]
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                size: 20,
-                                color: comment["liked"]
-                                    ? Colors.orange.shade600
-                                    : Colors.grey,
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Colors.orange,
+                              child: const Icon(Icons.person, color: Colors.white),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    data['authorName'] ?? 'Anonim',
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(data['text']),
+                                ],
                               ),
                             ),
-                            SizedBox(height: 4),
-                            Text(
-                              "${comment["likes"] ?? 0}",
-                              style: TextStyle(fontSize: 12),
+                            const SizedBox(width: 8),
+                            Column(
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    isLiked ? Icons.favorite : Icons.favorite_border,
+                                    color: isLiked ? Colors.orange : Colors.grey,
+                                    size: 20,
+                                  ),
+                                  onPressed: () => _toggleLike(doc.reference, likedBy, data['likes']),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
+                                Text('${data['likes'] ?? 0}', style: const TextStyle(fontSize: 12)),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   );
                 },
               ),
             ),
-            Divider(height: 1),
-            TextField(
-              controller: _commentController,
-              decoration: InputDecoration(
-                hintText: "Yorum yaz...",
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    Icons.send,
-                    color: Colors.orange.shade600,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+              child: TextField(
+                controller: _commentController,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  hintText: "Yorum yaz...",
+                  fillColor: Colors.grey.shade100,
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
                   ),
-                  onPressed: addComment,
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.send, color: Colors.orange.shade600),
+                    onPressed: _addComment,
+                  ),
                 ),
               ),
             ),
@@ -178,5 +173,4 @@ class _CommentSheetState extends State<CommentSheet> {
       ),
     );
   }
-
 }

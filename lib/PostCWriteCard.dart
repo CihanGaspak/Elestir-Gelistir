@@ -1,150 +1,188 @@
-import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 class PostWrite extends StatefulWidget {
   final TextEditingController controller;
-  final void Function(String text, String category, File? image) onPost;
+  final Future<void> Function(String text, String category) onPost;
 
   const PostWrite({
-    super.key,
+    Key? key,
     required this.controller,
     required this.onPost,
-  });
+  }) : super(key: key);
 
   @override
   State<PostWrite> createState() => _PostWriteState();
 }
 
-
 class _PostWriteState extends State<PostWrite> {
+  /* ───────────────────────── STATE ───────────────────────── */
   String selectedCategory = 'Eğitim';
-  File? selectedImage;
+  bool   isPosting        = false;
+  int    remaining        = 280;
 
-  final List<String> categories = ['Eğitim', 'Spor', 'Tamirat', 'Araç Bakım'];
+  String? username;          // 👈 oturum açan kullanıcının adı
+  String? photoUrl;          //    (isteğe bağlı)
 
-  // Fotoğraf seçme fonksiyonu
-  Future<void> pickImage() async {
-    final picker = ImagePicker();
+  /* ───────────────────────── KATEGORİ LİSTESİ ────────────── */
+  final categories = [
+    {'name': 'Eğitim',     'icon': Icons.school},
+    {'name': 'Spor',       'icon': Icons.fitness_center},
+    {'name': 'Tamirat',    'icon': Icons.build},
+    {'name': 'Araç Bakım', 'icon': Icons.car_repair},
+  ];
 
-    // Fotoğraf seçme işlemi
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  /* ───────────────────────── INIT ────────────────────────── */
+  @override
+  void initState() {
+    super.initState();
 
-    // Eğer fotoğraf seçilmişse
-    if (pickedFile != null) {
-      setState(() {
-        selectedImage = File(pickedFile.path); // Fotoğrafı kaydet
-      });
-    } else {
-      // Fotoğraf seçilmediğinde kullanıcıya bilgi ver
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Fotoğraf seçilmedi")),
-      );
-    }
+    // karakter sayacı dinleyicisi
+    widget.controller.addListener(() {
+      setState(() => remaining = 280 - widget.controller.text.length);
+    });
+
+    // kullanıcı adını Firestore’dan çek
+    _loadUserInfo();
   }
 
-
-  // Paylaşma işlemi
-  void handlePost() {
-    if (widget.controller.text.trim().isEmpty) return;
-
-    widget.onPost(
-        widget.controller.text.trim(), selectedCategory, selectedImage);
+  Future<void> _loadUserInfo() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final snap = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
 
     setState(() {
-      selectedImage = null;
-      widget.controller.clear();
+      username  = snap['username'] ?? user.email;
+      photoUrl  = snap['photoUrl'] ?? '';
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
+  /* ───────────────────────── POST GÖNDER ─────────────────── */
+  Future<void> handlePost() async {
+    final text = widget.controller.text.trim();
+    if (text.isEmpty || text.length > 280) return;
 
-      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            // Kullanıcı adı ve tarih
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(backgroundColor: Colors.grey.shade300),
-                    SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+    setState(() => isPosting = true);
+    await widget.onPost(text, selectedCategory);
+
+    if (!mounted) return;
+    setState(() {
+      isPosting = false;
+      widget.controller.clear();
+      remaining = 280;
+    });
+    Navigator.pop(context);
+  }
+
+  /* ───────────────────────── UI ──────────────────────────── */
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+    decoration: const BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    child: SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /* Başlık + Kategori */
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Yeni Gönderi',
+                  style:
+                  TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              DropdownButton<String>(
+                value: selectedCategory,
+                items: categories
+                    .map<DropdownMenuItem<String>>(
+                      (cat) => DropdownMenuItem<String>(
+                    value: cat['name'] as String,
+                    child: Row(
                       children: [
-                        Text("Kullanıcı Adı", style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text("Tarih", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        Icon(cat['icon'] as IconData, size: 18),
+                        const SizedBox(width: 6),
+                        Text(cat['name'] as String),
                       ],
                     ),
-                  ],
-                ),
-                // Kategori dropdown (sağ üstte)
-                DropdownButton<String>(
-                  value: selectedCategory,
-                  items: categories
-                      .map((category) => DropdownMenuItem(
-                    value: category,
-                    child: Text(category),
-                  ))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        selectedCategory = value;
-                      });
-                    }
-                  },
-                ),
-              ],
-            ),
-            Divider(height: 1,),
-            TextField(
-              controller: widget.controller,
-              maxLines: null,
-              decoration: InputDecoration.collapsed(
-                hintText: "Bir şeyler yaz...",
+                  ),
+                )
+                    .toList(),
+                onChanged: (v) =>
+                    setState(() => selectedCategory = v ?? selectedCategory),
               ),
-            ),
-            Divider(height: 1,),
-            // Seçilen fotoğraf önizlemesi
-            if (selectedImage != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  selectedImage!,
-                  height: 150,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            Divider(height: 1,),
-            // Fotoğraf ekleme ve paylaşma butonları
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.add_photo_alternate, color: Colors.blue.shade600,size: 40,),
-                  onPressed: pickImage, // Fotoğraf seçme işlemi
-                ),
-                IconButton(
-                  icon: Icon(Icons.send, color: Colors.orange.shade600,size: 40,),
-                  onPressed: handlePost, // Paylaşma işlemi
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+            ],
+          ),
+          const SizedBox(height: 16),
 
+          /* Kullanıcı bilgisi */
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: Colors.orange.shade100,
+                backgroundImage: (photoUrl != null && photoUrl!.startsWith('assets/'))
+                    ? AssetImage(photoUrl!) as ImageProvider
+                    : (photoUrl != null && photoUrl!.isNotEmpty)
+                    ? NetworkImage(photoUrl!)
+                    : null,
+                child: (photoUrl == null || photoUrl!.isEmpty)
+                    ? const Icon(Icons.person, color: Colors.white)
+                    : null,
+              ),
+              const SizedBox(width: 10),
+              Text(username ?? 'Kullanıcı',
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          /* Yazı alanı */
+          TextField(
+            controller: widget.controller,
+            maxLines: 5,
+            maxLength: 280,
+            decoration: const InputDecoration(
+              hintText: 'Fikrini veya sorunu paylaş...',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.all(12),
+            ),
+          ),
+          Align(
+              alignment: Alignment.centerRight,
+              child: Text('$remaining karakter kaldı',
+                  style: TextStyle(
+                      fontSize: 12,
+                      color:
+                      remaining < 0 ? Colors.red : Colors.grey))),
+
+          const SizedBox(height: 20),
+
+          /* Gönder / yükleniyor */
+          isPosting
+              ? const Center(child: CircularProgressIndicator())
+              : SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: remaining < 0 ? null : handlePost,
+              icon: const Icon(Icons.send),
+              label: const Text('Paylaş'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange.shade600,
+                padding:
+                const EdgeInsets.symmetric(vertical: 14),
+                textStyle: const TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}

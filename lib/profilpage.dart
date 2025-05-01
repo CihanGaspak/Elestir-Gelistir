@@ -1,12 +1,8 @@
-import 'dart:convert';
-import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:path_provider/path_provider.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // <-- Firebase auth import
 import 'PostCard.dart';
-import 'package:elestir_gelistir/settingspage.dart';
+import 'settingspage.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -16,210 +12,158 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  File? _profileImage;
-  File? _coverImage;
-  String name = "Kullanıcı"; // Başlangıç boş
-  String username = "@kullanici"; // Başlangıç boş
+  String _photoUrl = '';
+  String name = "Kullanıcı";
+  String username = "@kullanici";
   String bio = "Nisan değilse Mayıs";
-  int solutions = 18;
-  int supports = 45;
-  double helpfulness = 8.7;
-  int followers = 1200;
-  int following = 148;
 
-  List<dynamic> allPosts = [];
+  List<Map<String, dynamic>> allPosts = [];
+  int supports = 0;
+  int solutions = 0;
+  int followers = 143;
+  int following = 87;
+  double helpfulness = 8.9;
 
   @override
   void initState() {
     super.initState();
-    loadUserInfo(); // Kullanıcı bilgilerini yükle
-    loadPosts(); // Postları yükle
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadUserInfo();
+      loadPosts();
+    });
   }
 
   Future<void> loadUserInfo() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
       setState(() {
-        name = user.displayName ?? "Kullanıcı";
-        username = "@${user.email?.split('@')[0]}"; // Email'in '@' öncesini al
+        name = userDoc['username'] ?? "Kullanıcı";
+        username = "@${user.email?.split('@')[0]}";
+        _photoUrl = userDoc['photoUrl'] ?? '';
       });
     }
   }
 
   Future<void> loadPosts() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/posts.json');
-      if (await file.exists()) {
-        final contents = await file.readAsString();
-        setState(() {
-          allPosts = json.decode(contents);
-        });
-      } else {
-        final assetData = await rootBundle.loadString('assets/posts.json');
-        setState(() {
-          allPosts = json.decode(assetData);
-        });
-        await savePosts();
-      }
-    } catch (e) {
-      print("Postları yüklerken hata: $e");
-    }
-  }
+    final user = FirebaseAuth.instance.currentUser;
+    debugPrint("Aktif kullanıcı: ${user?.uid}");
+    if (user == null) return;
 
-  Future<void> savePosts() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/posts.json');
-    await file.writeAsString(json.encode(allPosts));
-  }
+    final query = await FirebaseFirestore.instance
+        .collection('posts')
+        .where('authorId', isEqualTo: user.uid)
+        .get();
 
-  Future<void> pickProfileImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _profileImage = File(picked.path);
-      });
-    }
-  }
+    debugPrint("Post sayısı: ${query.docs.length}");
 
-  Future<void> pickCoverImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _coverImage = File(picked.path);
-      });
-    }
+    final fetchedPosts = query.docs.map((doc) {
+      final data = Map<String, dynamic>.from(doc.data());
+      data['id'] = doc.id;
+      return data;
+    }).toList();
+
+    // Tarihe göre sıralama
+    fetchedPosts.sort((a, b) {
+      final aDate = (a['date'] as Timestamp?)?.toDate();
+      final bDate = (b['date'] as Timestamp?)?.toDate();
+      if (aDate == null && bDate == null) return 0;
+      if (aDate == null) return 1;
+      if (bDate == null) return -1;
+      return bDate.compareTo(aDate);
+    });
+
+    int newSupports =
+        fetchedPosts.where((p) => (p['progressStep'] ?? 0) < 3).length;
+    int newSolutions =
+        fetchedPosts.where((p) => (p['progressStep'] ?? 0) == 3).length;
+
+    setState(() {
+      allPosts = fetchedPosts;
+      supports = newSupports;
+      solutions = newSolutions;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Colors.orange.shade600;
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
+          title: const Text("Profil"),
           centerTitle: true,
-          title: const Text("Profil", style: TextStyle(color: Colors.white)),
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.orange.shade600,
+          backgroundColor: primaryColor,
           actions: [
             IconButton(
-              icon: const Icon(Icons.settings, size: 30, color: Colors.white),
+              icon: const Icon(Icons.settings),
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const SettingsPage()),
-                );
+                  MaterialPageRoute(builder: (_) => const SettingsPage()),
+                ).then((_) {
+                  // Ayarlardan dönünce avatarı tekrar yükle
+                  loadUserInfo();
+                });
+
               },
             ),
           ],
         ),
         body: Column(
           children: [
+            const SizedBox(height: 20),
+            CircleAvatar(
+              radius: 50,
+              backgroundColor: primaryColor.withOpacity(0.1),
+              backgroundImage: _photoUrl.isNotEmpty
+                  ? (_photoUrl.startsWith('assets/')
+                  ? AssetImage(_photoUrl)
+                  : NetworkImage(_photoUrl) as ImageProvider)
+                  : const AssetImage("assets/images/profile.jpg"),
+            ),
+            const SizedBox(height: 10),
+            Text(name,
+                style: const TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(username, style: const TextStyle(color: Colors.grey)),
+            const SizedBox(height: 6),
+            Text(bio),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildStat("Takipçi", followers),
+                _buildStat("Takip", following),
+                _buildStat(
+                    "Faydalılık", "${helpfulness.toStringAsFixed(1)}/10"),
+              ],
+            ),
+            const SizedBox(height: 8),
+            TabBar(
+              labelColor: primaryColor,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: primaryColor,
+              tabs: [
+                Tab(
+                    icon: const Icon(Icons.timelapse),
+                    text: "Devam Ediyor ($supports)"),
+                Tab(
+                    icon: const Icon(Icons.check_circle),
+                    text: "Çözüldü ($solutions)"),
+              ],
+            ),
             Expanded(
-              child: NestedScrollView(
-                headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Stack(
-                            alignment: Alignment.bottomLeft,
-                            children: [
-                              GestureDetector(
-                                onTap: pickCoverImage,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Container(
-                                    height: 200,
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        image: _coverImage != null
-                                            ? FileImage(_coverImage!)
-                                            : const AssetImage("assets/images/cover.jpg") as ImageProvider,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    child: const Align(
-                                      alignment: Alignment.topRight,
-                                      child: Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: Icon(Icons.camera_alt, color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 2,
-                                left: 2,
-                                child: GestureDetector(
-                                  onTap: pickProfileImage,
-                                  child: Container(
-                                    width: 120,
-                                    height: 120,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.orange.shade600, width: 2),
-                                      image: DecorationImage(
-                                        image: _profileImage != null
-                                            ? FileImage(_profileImage!)
-                                            : const AssetImage("assets/images/profile.jpg") as ImageProvider,
-                                        fit: BoxFit.cover,
-                                      ),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Colors.black26,
-                                          blurRadius: 6,
-                                          offset: Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 60),
-                          Text(name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                          Text(username, style: const TextStyle(color: Colors.grey, fontSize: 16)),
-                          const SizedBox(height: 8),
-                          Text(bio, style: const TextStyle(fontSize: 14)),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildStat("Takipçi", followers),
-                              _buildStat("Takip", following),
-                              _buildStat("Faydalılık", "${helpfulness.toStringAsFixed(1)}/10"),
-                              _buildStat("Destekler", supports),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          TabBar(
-                            labelColor: Colors.orange.shade600,
-                            unselectedLabelColor: Colors.grey,
-                            indicatorColor: Colors.orange.shade600,
-                            tabs: [
-                              Tab(icon: const Icon(Icons.timelapse), text: "Devam Ed. ($supports)"),
-                              Tab(icon: const Icon(Icons.check_circle_outline), text: "Çözülenler ($solutions)"),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+              child: TabBarView(
+                children: [
+                  _buildPostList((p) => (p['progressStep'] ?? 0) < 3),
+                  _buildPostList((p) => (p['progressStep'] ?? 0) == 3),
                 ],
-                body: TabBarView(
-                  children: [
-                    _buildOngoingPostList(),
-                    _buildSolutionList(),
-                  ],
-                ),
               ),
             ),
           ],
@@ -231,36 +175,23 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildStat(String title, dynamic value) {
     return Column(
       children: [
-        Text("$value", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Text("$value",
+            style:
+            const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         Text(title, style: const TextStyle(color: Colors.grey)),
       ],
     );
   }
 
-  Widget _buildOngoingPostList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(0),
-      itemCount: allPosts.length,
-      itemBuilder: (context, index) {
-        final post = allPosts[index];
-        return PostCard(post: post);
-      },
-    );
-  }
+  Widget _buildPostList(bool Function(Map<String, dynamic>) filter) {
+    final filtered = allPosts.where(filter).toList();
+    if (filtered.isEmpty) {
+      return const Center(child: Text("Gönderi yok."));
+    }
 
-  Widget _buildSolutionList() {
     return ListView.builder(
-      padding: const EdgeInsets.all(4),
-      itemCount: solutions,
-      itemBuilder: (context, index) {
-        return Card(
-          child: ListTile(
-            leading: const Icon(Icons.check_circle, color: Colors.green),
-            title: Text("Çözüm ${index + 1}"),
-            subtitle: const Text("Sorun başarılı şekilde çözülmüş."),
-          ),
-        );
-      },
+      itemCount: filtered.length,
+      itemBuilder: (context, index) => PostCard(post: filtered[index]),
     );
   }
 }
