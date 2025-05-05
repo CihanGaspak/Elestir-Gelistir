@@ -1,6 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  serverTimestamp,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -9,73 +17,24 @@ const firebaseConfig = {
   projectId: "elestir-gelistir",
   storageBucket: "elestir-gelistir.firebasestorage.app",
   messagingSenderId: "329858460105",
-  appId: "1:329858460105:web:0a1940df3d7b57593b6018",
-  measurementId: "G-4QNGS9HE61"
+  appId: "1:329858460105:web:0a1940df3d7b57593b6018"
 };
 
+// Firebase başlat
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 // Çıkış işlemi
-document.getElementById("logout-link").addEventListener("click", function (e) {
-  e.preventDefault();
-  signOut(auth)
-    .then(() => {
-      window.location.href = "login.html";
-    })
-    .catch((error) => {
-      console.error("Çıkış hatası:", error);
-    });
-});
-
-// Ayarlar menüsü
-const settingsmenu = document.querySelector(".settings-menu");
-const darkBtn = document.getElementById("dark-btn");
-
-function settingsMenuToggle() {
-  settingsmenu.classList.toggle("settings-menu-height");
-}
-
-document.querySelectorAll('.settings-menu-btn').forEach(btn => {
-  btn.addEventListener('click', function (event) {
-    event.preventDefault();
-    settingsMenuToggle();
+const logoutLink = document.getElementById("logout-link");
+if (logoutLink) {
+  logoutLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    signOut(auth).then(() => window.location.href = "login.html");
   });
-});
-
-document.addEventListener('click', function (event) {
-  const settingsMenus = document.querySelectorAll('.settings-menu');
-  settingsMenus.forEach(menu => {
-    if (!menu.contains(event.target) && !menu.previousElementSibling.contains(event.target)) {
-      menu.classList.remove('settings-menu-height');
-    }
-  });
-});
-
-// Tema
-darkBtn.onclick = function () {
-  darkBtn.classList.toggle("dark-btn-on");
-  document.body.classList.toggle("dark-theme");
-
-  if (localStorage.getItem("theme") == "light") {
-    localStorage.setItem("theme", "dark");
-  } else {
-    localStorage.setItem("theme", "light");
-  }
 }
 
-if (localStorage.getItem("theme") == "light") {
-  darkBtn.classList.remove("dark-btn-on");
-  document.body.classList.remove("dark-theme");
-} else if (localStorage.getItem("theme") == "dark") {
-  darkBtn.classList.add("dark-btn-on");
-  document.body.classList.add("dark-theme");
-} else {
-  localStorage.setItem("theme", "light");
-}
-
-// ---------------------- GÖNDERİ EKLEME -----------------------
+// Gönderi ekleme
 document.addEventListener("DOMContentLoaded", () => {
   const textarea = document.querySelector("textarea");
   const sendBtn = document.createElement("button");
@@ -86,82 +45,85 @@ document.addEventListener("DOMContentLoaded", () => {
 
   sendBtn.addEventListener("click", async () => {
     const text = textarea.value.trim();
+    const category = document.getElementById("post-category")?.value || "gundelik";
     if (!text) return alert("Lütfen bir içerik girin!");
 
     try {
       await addDoc(collection(db, "posts"), {
         title: text,
         author: "Cihan Gaspak",
-        category: "gundelik",
+        category,
         tags: ["etiket"],
         image: "",
         date: serverTimestamp(),
         likes: 0,
         comments: 0,
-        views: 0
+        views: 0,
+        progressStep: 0
       });
-
       textarea.value = "";
       loadPosts();
     } catch (err) {
       console.error("Post eklenemedi:", err);
-      alert("Gönderi eklenemedi.");
     }
   });
+
+  loadPosts();
 });
 
-// ---------------------- POSTLARI FIRESTORE'DAN YÜKLE -----------------------
+// Postları yükle
 async function loadPosts() {
-  const postContainer = document.querySelector('.posts-container');
+  const postContainer = document.querySelector(".posts-container");
   postContainer.innerHTML = "";
 
   const q = query(collection(db, "posts"), orderBy("date", "desc"));
-  const querySnapshot = await getDocs(q);
+  const snapshot = await getDocs(q);
 
-  querySnapshot.forEach((doc) => {
-    const post = doc.data();
+  snapshot.forEach((docSnap) => {
+    const post = docSnap.data();
     const date = post.date?.toDate() || new Date();
-    const formattedDate = date.toLocaleDateString('tr-TR', {
-      day: '2-digit', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
+    const formattedDate = date.toLocaleString("tr-TR");
 
-    const postElement = document.createElement('div');
-    postElement.classList.add('post-container');
-    postElement.setAttribute("data-category", post.category);
+    const postElement = document.createElement("div");
+    postElement.classList.add("post-container");
+    postElement.setAttribute("data-category", post.category || "tum");
 
     postElement.innerHTML = `
-      <div class="post-row">
-        <div class="user-profile">
-          <img src="images/profile-pic.png">
-          <div>
-            <p>${post.author}</p>
-            <span>${formattedDate}</span>
+      <div class="post-card" style="cursor:pointer;">
+        <div class="post-header">
+          <img src="${post.authorPhotoUrl || 'images/profile-pic.png'}" class="avatar" />
+          <div class="author-info">
+            <p class="author-name">${post.authorName || 'Kullanıcı'}</p>
+            <p class="post-date">${formattedDate}</p>
+          </div>
+          <div class="progress-icons">
+            <i class="fas fa-lightbulb ${post.progressStep >= 0 ? 'active' : ''}"></i>
+            <i class="fas fa-tools ${post.progressStep >= 1 ? 'active' : ''}"></i>
+            <i class="fas fa-check-circle ${post.progressStep >= 2 ? 'active' : ''}"></i>
           </div>
         </div>
-      </div>
-      <p class="post-text">${post.title}</p>
-    `;
+        <div class="post-content"><p>${post.content || ''}</p></div>
+        <div class="post-actions">
+          <div class="action"><i class="far fa-thumbs-up"></i> <span>${post.likesCount || 0}</span></div>
+          <div class="action"><i class="far fa-comment"></i> <span>${post.commentsCount || 0}</span></div>
+          <div class="action"><i class="fa fa-share"></i></div>
+          <div class="action"><i class="far fa-bookmark"></i></div>
+        </div>
+        <div class="step-section">
+          <div class="step-title">💡 Eleştir</div>
+          <div class="step-body hidden">${post.step1Note || 'Henüz bu aşamaya geçilmedi.'}</div>
+          <div class="step-title">🛠 Düşündür</div>
+          <div class="step-body hidden">${post.step2Note || 'Henüz bu aşamaya geçilmedi.'}</div>
+          <div class="step-title">✅ Geliştir</div>
+          <div class="step-body hidden">${post.step3Note || 'Henüz bu aşamaya geçilmedi.'}</div>
+        </div>
+      </div>`;
+
+    postElement.querySelector(".post-card").addEventListener("click", () => {
+      localStorage.setItem("selectedPost", JSON.stringify({ ...post, id: docSnap.id }));
+      window.location.href = "post-detail.html";
+    });
 
     postContainer.appendChild(postElement);
-  });
-}
-
-window.onload = loadPosts;
-
-// ---------------------- FİLTRELEME -----------------------
-function filterPosts(category) {
-  const posts = document.querySelectorAll('.post-container');
-  const buttons = document.querySelectorAll('.filter-button');
-
-  buttons.forEach(button => button.classList.remove('active'));
-  event.target.classList.add('active');
-
-  posts.forEach(post => {
-    if (category === 'all') {
-      post.style.display = "block";
-    } else {
-      post.style.display = post.dataset.category === category ? "block" : "none";
-    }
   });
 }

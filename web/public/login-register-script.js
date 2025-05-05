@@ -8,16 +8,25 @@ const firebaseConfig = {
   apiKey: "AIzaSyByrxwGrUPfIFUjsG2Nsv6niu5aM_5v4wM",
   authDomain: "elestir-gelistir.firebaseapp.com",
   projectId: "elestir-gelistir",
-  storageBucket: "elestir-gelistir.firebasestorage.app",
+  storageBucket: "elestir-gelistir.appspot.com", // düzeltildi
   messagingSenderId: "329858460105",
-  appId: "1:329858460105:web:0a1940df3d7b57593b6018",
-  measurementId: "G-4QNGS9HE61"
+  appId: "1:329858460105:web:0a1940df3d7b57593b6018"
 };
 
 // Firebase'i başlat
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app); // Firestore'u başlat
+const db = getFirestore(app);
+
+// Sayfa yüklendiğinde form geçişlerini ayarla
+document.addEventListener("DOMContentLoaded", () => {
+  const container = document.querySelector(".container");
+  const registerBtn = document.querySelector(".register-btn");
+  const loginBtn = document.querySelector(".login-btn");
+
+  registerBtn?.addEventListener("click", () => container.classList.add("active"));
+  loginBtn?.addEventListener("click", () => container.classList.remove("active"));
+});
 
 // Giriş işlemi
 document.getElementById("login-form").addEventListener("submit", function (e) {
@@ -26,7 +35,7 @@ document.getElementById("login-form").addEventListener("submit", function (e) {
   const password = document.getElementById("login-password").value;
 
   signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
+    .then(() => {
       alert("Giriş başarılı!");
       window.location.href = "index.html";
     })
@@ -45,10 +54,10 @@ document.getElementById("register-form").addEventListener("submit", function (e)
   createUserWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
       const user = userCredential.user;
-      // Kullanıcı adını Firestore'da "users" koleksiyonunda user.uid ile kayıt et
       return setDoc(doc(db, "users", user.uid), {
         username: username,
-        email: email
+        email: email,
+        photoUrl: "avatars/avatar1.png" // varsayılan avatar
       }).then(() => {
         alert("Kayıt başarılı!");
         window.location.href = "login.html";

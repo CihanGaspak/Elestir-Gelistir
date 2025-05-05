@@ -1,168 +1,235 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile Page Eleştir-Geliştir</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://kit.fontawesome.com/3e9484d64b.js" crossorigin="anonymous"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profil | Eleştir-Geliştir</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://kit.fontawesome.com/3e9484d64b.js" crossorigin="anonymous"></script>
+  <style>
+
+    .post-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+  padding: 0 10px;
+}
+.post-actions span {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  color: #444;
+}
+.post-actions i {
+  color: #444;
+}
+
+    /* Kısaltılmış stiller - seninle aynı */
+    .profile-header { display: flex; align-items: center; padding: 20px; background: white; border-radius: 12px; margin: 20px auto; max-width: 700px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .profile-header img.avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-right: 20px; }
+    .tab-buttons { display: flex; justify-content: center; margin-top: 20px; }
+    .tab-btn { background: #eee; border: none; padding: 10px 20px; margin: 0 5px; cursor: pointer; border-radius: 20px; transition: 0.3s; }
+    .tab-btn.active { background-color: #ffa726; color: white; font-weight: bold; }
+    .tab-content { display: none; max-width: 700px; margin: 20px auto; }
+    .tab-content.active { display: block; }
+    .post-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+    .post-header { display: flex; align-items: center; }
+    .post-header .avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; }
+    .post-actions { display: flex; gap: 15px; margin-top: 10px; }
+    .step-section { margin-top: 10px; }
+    .step-title { font-weight: bold; margin-top: 10px; }
+    .step-body { padding-left: 10px; color: #555; }
+  </style>
 </head>
 <body>
-    
-    <nav>
-        <div class="nav-left">
-            <a href="index.html">
-                <img src="images/logo.png" class="logo" alt="Logo">
-            </a>
-            <ul>
-                <li><img src="images/notification.png" alt="Notifications"></li>
-                <li><img src="images/inbox.png" alt="Inbox"></li>
-                <li><img src="images/video.png" alt="Videos"></li>
-            </ul>
-        </div>
-
-        <div class="nav-right">
-            <div class="search-box">
-                <img src="images/search.png" alt="Search Icon">
-                <input type="text" placeholder="Ara">
-            </div>
-            <div class="nav-user-icon online" onclick="settingsMenuToggle()">
-                <img src="images/profile-pic.png" alt="User Profile">
-            </div>
-        </div>
-
-        <!----------- Settings Menü ------------>
-        <div class="settings-menu">
-
-            <div id="dark-btn">
-                <span></span>
-            </div>
-
-            <div class="settings-menu-inner">
-                <div class="user-profile">
-                    <img src="images/profile-pic.png">
-                    <div>
-                        <p>Cihan Gaspak</p>
-                        <a href="profile.html">Profilini Gör</a>
-                    </div>
-                </div>
-                <hr>
-                <div class="user-profile">
-                    <img src="images/feedback.png">
-                    <div>
-                        <p>Geri Bildirim Ver</p>
-                        <a href="#">Yeni tasarımı geliştirmemize yardımcı olun</a>
-                    </div>
-                </div>
-                <hr>
-                <div class="settings-links">
-                    <img src="images/setting.png" class="settings-icon">
-                    <a href="#">Ayarlar ve Gizlilik <img src="images/arrow.png" width="10px"></a>
-                </div>
-                <div class="settings-links">
-                    <img src="images/help.png" class="settings-icon">
-                    <a href="#">Yardım ve Destek <img src="images/arrow.png" width="10px"></a>
-                </div>
-                <div class="settings-links">
-                    <img src="images/display.png" class="settings-icon">
-                    <a href="#">Ekran ve Erişilebilirlik <img src="images/arrow.png" width="10px"></a>
-                </div>
-                <div class="settings-links">
-                    <img src="images/logout.png" class="settings-icon">
-                    <a href="#" id="logout-link">Çıkış Yap <img src="images/arrow.png" width="10px"></a>
-                </div>
-            </div>            
-        </div>
-
-    </nav>
-
-    <!----------- Profile Page ------------>
-    <div class="profile-container">
-        <img src="images/cover.png" class="cover-img">
-        <div class="profile-details">
-
-            <div class="pd-left">
-                <div class="pd-row">
-                    <img src="images/profile.png" class="pd-image"> 
-                    <div>
-                        <h3>Cihan Gaspak</h3>
-                    </div>
-                </div>
-            </div>
-
-            <div class="pd-right">
-                <button type="button"><img src="images/add-friends.png"> Ekle</button>
-                <button type="button"><img src="images/message.png"> Mesaj</button>
-                <br>
-                <a href=""><img src="images/more.png"></a>
-            </div>
-        </div>
-
-        <div class="profile-info">
-            <div class="info-col">
-
-                <div class="profile-intro">
-                    <h3>Hissel</h3>
-                    <p class="intro-text">Bunca yıl sönmemiş umudum nisan değilse mayıs perşembe değilse pazar. 
-                        <hr>  
-                        <ul>
-                            <li><img src="images/profile-job.png"> Yazılım Mühendisi</li>
-                            <li><img src="images/profile-study.png"> Fırat Üniversitesinde Öğrenci</li>
-                            <li><img src="images/profile-home.png"> Malatya, Türkiye</li>
-                            <li><img src="images/profile-location.png"> Elazig, Türkiye</li>
-                        </ul>  
-                </div>
-
-                <div class="profile-intro">
-                    <div class="title-box">
-                        <h3>Arkadaşlar</h3>
-                        <a href="">Bütün Arkadaşlar</a>
-                    </div>
-                    <div class="friends-box">
-                    </div>
-                </div>
-
-
-            </div>
-            <div class="post-col">
-                <!-- Filtreleme Butonları -->
-            <div class="filter-container">
-                <button class="filter-button active" onclick="filterPosts('all')">Tümü</button>
-                <button class="filter-button" onclick="filterPosts('egitim')">Eğitim</button>
-                <button class="filter-button" onclick="filterPosts('insaat')">İnşaat</button>
-                <button class="filter-button" onclick="filterPosts('arac')">Araç Bakım</button>
-                <button class="filter-button" onclick="filterPosts('teknoloji')">Teknoloji</button>
-                <button class="filter-button" onclick="filterPosts('gundelik')">Gündelik</button>
-            </div>
-        
-            <!-- Yeni Gönderi Yazma Alanı -->
-            <div class="write-post-container">
-                <div class="user-profile">
-                    <img src="images/profile-pic.png">
-                    <div>
-                        <p>Cihan Gaspak</p>
-                        <small>Herkese Açık <i class="fa-solid fa-caret-down"></i></small>
-                    </div>
-                </div>
-        
-                <div class="post-input-container">
-                    <textarea rows="3" placeholder="Kafandaki soru işaretleri nedir?"></textarea>
-                    <div class="add-post-links">
-                        <a href="#"><img src="images/photo.png"> Fotoğraf/Video</a>
-                    </div>
-                </div>
-            </div>
-        
-            <!-- Postları İçeren Konteyner -->
-            <div class="posts-container"></div>
-            </div>
-        </div>
-
+  <div id="navbar-placeholder"></div>
+  <div class="profile-header">
+    <img src="assets/avatars/avatar1.png" class="avatar" alt="Avatar" />
+    <div class="profile-texts">
+      <h2 id="profile-name">Kullanıcı</h2>
+      <p id="profile-username">@username</p>
     </div>
+  </div>
 
-<div class="footer">
-    <p>Copyright 2025 - Eleştir&Geliştir AIM DEV.</p>
-</div>
-<script src="script.js"></script>
+  <div class="tab-buttons">
+    <button class="tab-btn active" onclick="showTab(0)">Devam Ediyor</button>
+    <button class="tab-btn" onclick="showTab(1)">Tamamlandı</button>
+    <button class="tab-btn" onclick="showTab(2)">Kaydedilenler</button>
+  </div>
+  <div class="tab-content active" id="tab-0"></div>
+  <div class="tab-content" id="tab-1"></div>
+  <div class="tab-content" id="tab-2"></div>
+
+  <!-- Firebase ve JS -->
+  <script type="module">
+    import { toggleLike, toggleSave } from './interactions.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyByrxwGrUPfIFUjsG2Nsv6niu5aM_5v4wM",
+      authDomain: "elestir-gelistir.firebaseapp.com",
+      projectId: "elestir-gelistir",
+      storageBucket: "elestir-gelistir.appspot.com",
+      messagingSenderId: "329858460105",
+      appId: "1:329858460105:web:0a1940df3d7b57593b6018"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore(app);
+
+    function generatePostHTML(post, docId, uid) {
+  const isLiked = post.likedBy?.includes(uid);
+  const isSaved = post.savedBy?.includes(uid);
+  const progress = post.progressStep ?? 0;
+
+  return `
+    <div class="post-card">
+      <div onclick="goToPostDetail('${docId}')" style="cursor: pointer;">
+        <div class="post-header">
+          <img src="${post.authorPhotoUrl || 'assets/avatars/avatar1.png'}" class="avatar" alt="Avatar">
+          <div class="author-info">
+            <p class="author-name">${post.authorName || 'Kullanıcı'}</p>
+            <p class="post-date">${new Date(post.date?.seconds * 1000).toLocaleString("tr-TR")}</p>
+          </div>
+        </div>
+        <div class="post-content"><p>${post.content || ''}</p></div>
+        <div class="step-section">
+          <div class="step-title">💡 Eleştir</div>
+          <div class="step-body">${progress >= 1 ? (post.step1Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
+          <div class="step-title">🛠 Düşündür</div>
+          <div class="step-body">${progress >= 2 ? (post.step2Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
+          <div class="step-title">✅ Geliştir</div>
+          <div class="step-body">${progress >= 3 ? (post.step3Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
+        </div>
+      </div>
+
+      <!-- Etkileşim butonları - Şık ve çizgisiz -->
+      <div class="post-actions">
+        <span id="like-${docId}">
+          <i class="fa${isLiked ? 's' : 'r'} fa-thumbs-up"></i> ${post.likesCount || 0}
+        </span>
+        <span onclick="goToPostDetail('${docId}')">
+  <i class="far fa-comment"></i> ${post.commentsCount || 0}
+</span>
+        <span id="save-${docId}">
+          <i class="fa${isSaved ? 's' : 'r'} fa-bookmark"></i>
+        </span>
+        <span id="share-${docId}">
+          <i class="fas fa-share"></i>
+        </span>
+        <span>
+          <i class="far fa-eye"></i> ${post.views || 0}
+        </span>
+      </div>
+    </div>
+  `;
+}
+
+
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+
+      // Profil Bilgisi
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        document.querySelector(".profile-header img.avatar").src = `assets/avatars/${data.photoUrl?.split("avatars/")[1] || "avatar1.png"}`;
+        document.getElementById("profile-name").textContent = data.username || "Kullanıcı";
+        document.getElementById("profile-username").textContent = `@${user.email.split("@")[0]}`;
+      }
+
+      const q = query(collection(db, "posts"), where("authorId", "==", user.uid));
+      onSnapshot(q, (snapshot) => {
+        const devam = document.getElementById("tab-0");
+        const tamam = document.getElementById("tab-1");
+        const kayit = document.getElementById("tab-2");
+        devam.innerHTML = tamam.innerHTML = kayit.innerHTML = "";
+
+        
+
+        snapshot.forEach(docSnap => {
+          const post = docSnap.data();
+          const docId = docSnap.id;
+          const html = generatePostHTML(post, docId, user.uid);
+
+          if (post.progressStep < 3) devam.insertAdjacentHTML("beforeend", html);
+          else tamam.insertAdjacentHTML("beforeend", html);
+
+          if (post.savedBy?.includes(user.uid)) {
+            kayit.insertAdjacentHTML("beforeend", html);
+          }
+
+          // Butonlara event ekle
+          setTimeout(() => {
+            const likeBtn = document.getElementById(`like-${docId}`);
+            const saveBtn = document.getElementById(`save-${docId}`);
+            const shareBtn = document.getElementById(`share-${docId}`);
+if (shareBtn) {
+  shareBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // Kart detayına tıklanmasını engelle
+
+    const shareUrl = `${window.location.origin}/post.html?id=${docId}`;
+    if (navigator.share) {
+      navigator.share({
+        title: post.content?.substring(0, 50) || "Gönderi",
+        text: "Bu gönderiye göz at!",
+        url: shareUrl,
+      }).catch((err) => console.error("Paylaşım iptal edildi", err));
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      alert("Bağlantı panoya kopyalandı 📋");
+    }
+  });
+}
+
+
+            if (likeBtn) {
+              likeBtn.addEventListener("click", async () => {
+                const isLiked = post.likedBy?.includes(user.uid);
+                await toggleLike(docId, user.uid, post.likedBy || []);
+                const icon = likeBtn.querySelector("i");
+                let count = parseInt(likeBtn.textContent.trim().split(" ").pop());
+                icon.classList.replace(isLiked ? "fas" : "far", isLiked ? "far" : "fas");
+                likeBtn.innerHTML = `<i class="fa${isLiked ? "r" : "s"} fa-thumbs-up"></i> ${isLiked ? count - 1 : count + 1}`;
+              });
+            }
+
+            if (saveBtn) {
+              saveBtn.addEventListener("click", async () => {
+                const isSaved = post.savedBy?.includes(user.uid);
+                await toggleSave(docId, user.uid, post.savedBy || []);
+                const icon = saveBtn.querySelector("i");
+                icon.classList.replace(isSaved ? "fas" : "far", isSaved ? "far" : "fas");
+              });
+            }
+          }, 0);
+        });
+      });
+    });
+
+    window.showTab = function(index) {
+  const tabs = document.querySelectorAll('.tab-content');
+  const buttons = document.querySelectorAll('.tab-btn');
+
+  tabs.forEach((tab, i) => {
+    tab.classList.toggle('active', i === index);
+  });
+
+  buttons.forEach((btn, i) => {
+    btn.classList.toggle('active', i === index);
+  });
+};
+
+
+  </script>
+
+  <!-- Sekme geçişi -->
+  <script type="module" src="navbar.js"></script>
 </body>
 </html>

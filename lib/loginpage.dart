@@ -91,13 +91,52 @@ class _LoginPageState extends State<LoginPage> {
   );
 
   bool _validEmail(String e) =>
-      RegExp(r"^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(e);
+      RegExp(r"^[\w-.]+@([\w-]+\.)+[\w-]{2,4}\$").hasMatch(e);
 
   @override
   Widget build(BuildContext context) => Scaffold(
     body: Center(
       child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 600), // yeni form için yavaş giriş
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
+          return Stack(
+            alignment: Alignment.center,
+            children: <Widget>[
+              ...previousChildren, // eski çocuk (arka planda) hemen silinecek
+              if (currentChild != null) currentChild,
+            ],
+          );
+        },
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          final isCurrent = child.key == ValueKey(showLogin ? 'login' : 'register');
+
+          // Gelen form yavaş yavaş aşağıdan gelir
+          final slideAnimation = Tween<Offset>(
+            begin: const Offset(0.0, 0.2),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          ));
+
+          // Giden form aniden kaybolur, gelen yavaşça görünür
+          final fadeAnimation = isCurrent
+              ? animation // gelen görünür olacak
+              : Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(
+            parent: animation,
+            curve: const Interval(0.0, 0.1, curve: Curves.easeOut),
+          ));
+
+          return isCurrent
+              ? SlideTransition(
+            position: slideAnimation,
+            child: FadeTransition(opacity: fadeAnimation, child: child),
+          )
+              : const SizedBox(); // eski formu tamamen kaldır
+        },
+
         child: isBusy
             ? const CircularProgressIndicator()
             : showLogin
