@@ -1,0 +1,119 @@
+<header class="topbar">
+  <div class="logo" onclick="window.location.href='index.html'" style="cursor:pointer;">
+    Eleştir-Geliştir
+  </div>  
+    <input type="text" class="search" placeholder="Ara...">
+    <div class="profile-menu">
+      <img id="profilePic" src="assets/avatars/avatar1.png" alt="profil" class="profile-img" onclick="toggleDropdown()">
+      <div id="dropdown" class="dropdown hidden">
+        <a href="profile.html">👤 Profilim</a>
+        <a href="#">ℹ️ Hakkında</a>
+        <a href="#">📧 Bize Ulaş</a>
+        <a href="#" onclick="logout()">🚪 Çıkış Yap</a>
+      </div>
+    </div>
+  </header>
+  
+  <style>
+    .topbar {
+      position: sticky;
+      top: 0;
+      background: #ffa726;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+  
+    .logo {
+      font-weight: bold;
+      font-size: 20px;
+      color: white;
+      text-shadow: 1px 1px #555;
+    }
+  
+    .search {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: none;
+      outline: none;
+      width: 200px;
+    }
+  
+    .profile-menu {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+  
+    .profile-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      cursor: pointer;
+      margin-left: 12px;
+      border: 2px solid white;
+    }
+  
+    .dropdown {
+      position: absolute;
+      right: 0;
+      top: 50px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      padding: 10px 0;
+      width: 160px;
+      font-family: sans-serif;
+      display: none;
+    }
+  
+    .dropdown a {
+      display: block;
+      padding: 10px 16px;
+      text-decoration: none;
+      color: #333;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+  
+    .dropdown a:hover {
+      background: #f0f0f0;
+    }
+  
+    .dropdown.show {
+      display: block;
+    }
+  </style>
+  
+  <script>
+    window.toggleDropdown = function () {
+      const dropdown = document.getElementById("dropdown");
+      dropdown.classList.toggle("show");
+    };
+  
+    window.logout = function () {
+      import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js").then(({ getAuth, signOut }) => {
+        const auth = getAuth();
+        signOut(auth).then(() => {
+          window.location.href = "login.html";
+        }).catch((err) => {
+          alert("Çıkış yapılırken hata oluştu.");
+          console.error(err);
+        });
+      });
+    };
+  
+    // Sayfa dışına tıklanırsa menüyü kapat
+    document.addEventListener("click", function (e) {
+      const menu = document.querySelector(".profile-menu");
+      if (!menu.contains(e.target)) {
+        document.getElementById("dropdown")?.classList.remove("show");
+      }
+    });
+  </script>
+  
+  

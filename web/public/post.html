@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gönderi Detayı</title>
+  <script src="https://kit.fontawesome.com/3e9484d64b.js" crossorigin="anonymous"></script>
+  <style>
+#post-container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px; /* burayı tekrar ekle, içeriği ortalar */
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 20px;
+  color: white;
+  text-shadow: 1px 1px #555;
+}
+
+.search {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+  width: 200px;
+}
+
+.profile-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.profile-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  margin-left: 12px;
+  border: 2px solid white;
+}
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 50px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  padding: 10px 0;
+  width: 160px;
+  font-family: sans-serif;
+  display: none;
+}
+
+.dropdown a {
+  display: block;
+  padding: 10px 16px;
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.dropdown a:hover {
+  background: #f0f0f0;
+}
+
+.dropdown.show {
+  display: block;
+}
+
+body {
+  font-family: sans-serif;
+  padding: 0; /* burayı sıfırla */
+  margin: 0;  /* burayı sıfırla */
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  background: #ffa726;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  width: 100%;
+  box-sizing: border-box; /* padding dahil tam genişlik kaplasın */
+}
+
+    .header, .actions, .step-card, .comment {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #fff5e0;
+    }
+    .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-around;
+      font-size: 16px;
+    }
+    .actions span {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .step-card {
+      background: #f9f9f9;
+    }
+    .step-card p {
+      margin: 6px 0 0;
+      font-size: 14px;
+      color: #333;
+    }
+    .step-card button:hover {
+      text-decoration: underline;
+    }
+    .step-card.editable {
+      border: 2px solid orange;
+      background-color: #fff8ec;
+    }
+    .comment {
+      background: #f1f1f1;
+    }
+    .comment .top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #commentInput {
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      width: 100%;
+    }
+    #sendCommentBtn:disabled {
+      background-color: #ccc !important;
+      cursor: not-allowed;
+    }
+    #sendCommentBtn:enabled {
+      background-color: orange;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<header class="topbar">
+  <div class="logo" onclick="window.location.href='index.html'" style="cursor:pointer;">Eleştir-Geliştir</div>
+    <input type="text" class="search" placeholder="Ara...">
+    <div class="profile-menu">
+      <img id="profilePic" src="assets/avatars/avatar1.png" alt="profil" class="profile-img" onclick="toggleDropdown()">
+      <div id="dropdown" class="dropdown hidden">
+        <a href="profile.html">👤 Profilim</a>
+        <a href="about.html">ℹ️ Hakkında</a>
+        <a href="contact.html">📧 Bize Ulaş</a>
+        <a href="#" onclick="logout()">🚪 Çıkış Yap</a>
+      </div>
+    </div>
+  </header>
+  
+<body>
+  <div id="post-container">
+    <div class="header">
+      <img id="avatar" class="avatar" src="" alt="avatar"/>
+      <div>
+        <div id="authorName" style="font-weight: bold;"></div>
+        <div id="postDate" style="font-size: 12px; color: gray;"></div>
+      </div>
+    </div>
+    <div id="postContent" style="margin: 20px 0; font-size: 16px;"></div>
+    <div class="actions">
+      <span id="likeBtn"><i class="far fa-thumbs-up"></i> <span id="likeCount">0</span></span>
+      <span><i class="far fa-comment"></i> <span id="commentCount">0</span></span>
+      <span id="saveBtn"><i class="far fa-bookmark"></i></span>
+      <span><i class="fas fa-share"></i></span>
+      <span><i class="far fa-eye"></i> <span id="viewCount">0</span></span>
+    </div>
+    <div id="steps"></div>
+    <h3>Yorum Yap</h3>
+    <textarea id="commentInput" rows="3" maxlength="140" placeholder="Yorum yaz..."></textarea>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+      <span id="charCount">0 / 140</span>
+      <button id="sendCommentBtn" disabled style="padding: 6px 12px; color: white; border: none; border-radius: 6px;">Gönder</button>
+    </div>
+    <br />
+    <h3>Yorumlar</h3>
+    <div id="comments"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment, collection, getDocs, query, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { toggleLike, toggleSave } from "./interactions.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyByrxwGrUPfIFUjsG2Nsv6niu5aM_5v4wM",
+      authDomain: "elestir-gelistir.firebaseapp.com",
+      projectId: "elestir-gelistir",
+      storageBucket: "elestir-gelistir.appspot.com",
+      messagingSenderId: "329858460105",
+      appId: "1:329858460105:web:0a1940df3d7b57593b6018"
+    });
+
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get("id");
+    const postRef = doc(db, "posts", postId);
+    let currentUser = null;
+    let currentNoteIndex = 0;
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      if (postId && user) {
+        await updateDoc(postRef, { views: increment(1) });
+        loadPost();
+        loadComments();
+      }
+    });
+
+    async function loadPost() {
+      const snap = await getDoc(postRef);
+      if (!snap.exists()) return;
+      const post = snap.data();
+      const uid = currentUser.uid;
+
+      document.getElementById("authorName").textContent = post.authorName || "Kullanıcı";
+      document.getElementById("postDate").textContent = new Date(post.date.seconds * 1000).toLocaleString("tr-TR");
+      document.getElementById("postContent").textContent = post.content || "";
+      document.getElementById("avatar").src = post.authorPhotoUrl || "";
+
+      const likedBy = post.likedBy || [];
+      const savedBy = post.savedBy || [];
+      const isLiked = likedBy.includes(uid);
+      const isSaved = savedBy.includes(uid);
+
+      document.getElementById("likeCount").textContent = post.likesCount || 0;
+      document.getElementById("viewCount").textContent = (post.views || 0) + 1;
+
+      document.getElementById("likeBtn").onclick = async () => {
+        await toggleLike(postId, uid, likedBy);
+        loadPost();
+      };
+
+      document.getElementById("saveBtn").onclick = async () => {
+        await toggleSave(postId, uid, savedBy);
+        loadPost();
+      };
+
+      const stageTitles = ["Eleştir", "Düşün", "Geliştir"];
+      const step = post.progressStep || 0;
+      const container = document.getElementById("steps");
+      container.innerHTML = "";
+      const isOwner = uid === post.authorId;
+
+      for (let i = 0; i < 3; i++) {
+        const reached = step >= i;
+        const note = post[`step${i + 1}Note`] || "";
+        const editable = reached && isOwner;
+        container.innerHTML += `
+        <div class="step-card ${editable ? 'editable' : ''}">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong>${reached ? stageTitles[i] : "Henüz bu aşamaya geçilmedi"}</strong>
+            ${editable ? `<button onclick="editNote(${i})" style="font-size:12px; color:orange; background:none; border:none; cursor:pointer;">Düzenle</button>` : ""}
+          </div>
+          ${reached ? `<p id="note-${i}" style="margin-top:6px;">${note || "Not eklenmemiş."}</p>` : ""}
+        </div>`;
+      }
+    }
+
+    async function loadComments() {
+      const q = query(collection(postRef, "comments"), orderBy("date", "desc"));
+      const snapshot = await getDocs(q);
+      document.getElementById("commentCount").textContent = snapshot.size;
+      const container = document.getElementById("comments");
+      container.innerHTML = "";
+      snapshot.forEach(docSnap => {
+        const c = docSnap.data();
+        const cid = docSnap.id;
+        const date = new Date(c.date.seconds * 1000).toLocaleString("tr-TR");
+        const isLiked = c.likedBy?.includes(currentUser.uid);
+        const likeIconClass = isLiked ? "fas fa-heart" : "far fa-heart";
+        const likeColor = isLiked ? "red" : "#888";
+        const likeCount = c.likedBy?.length || 0;
+        container.innerHTML += `
+          <div class="comment" data-id="${cid}" style="position:relative;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="${c.authorPhotoUrl}" class="avatar" alt="">
+              <div>
+                <div style="font-weight:bold;">${c.authorName}</div>
+                <div style="font-size:12px; color:gray;">${date}</div>
+              </div>
+            </div>
+            <div style="margin-top:10px; font-size:15px;">${c.text}</div>
+            <div style="position:absolute; bottom:12px; right:16px;">
+              <span class="like-comment" data-cid="${cid}" style="cursor:pointer; color:${likeColor};">
+                <i class="${likeIconClass}"></i>
+              </span>
+              <span class="like-count" data-cid="${cid}" style="margin-left:4px;">${likeCount}</span>
+            </div>
+          </div>`;
+      });
+    }
+
+    document.getElementById("commentInput").addEventListener("input", () => {
+      const len = commentInput.value.trim().length;
+      document.getElementById("charCount").textContent = `${len} / 140`;
+      document.getElementById("sendCommentBtn").disabled = len === 0;
+    });
+
+    document.getElementById("sendCommentBtn").addEventListener("click", async () => {
+      const text = commentInput.value.trim();
+      if (!text || !currentUser) return;
+      const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+      const userData = userSnap.data();
+      await addDoc(collection(postRef, "comments"), {
+        text,
+        authorId: currentUser.uid,
+        authorName: userData.username || "Kullanıcı",
+        authorPhotoUrl: userData.photoUrl || "",
+        date: new Date(),
+        likedBy: [],
+      });
+      await updateDoc(postRef, { commentsCount: increment(1) });
+      commentInput.value = "";
+      document.getElementById("sendCommentBtn").disabled = true;
+      document.getElementById("charCount").textContent = "0 / 140";
+      loadComments();
+    });
+
+    document.addEventListener("click", async (e) => {
+      const likeBtn = e.target.closest(".like-comment");
+      if (!likeBtn || !currentUser) return;
+      const cid = likeBtn.dataset.cid;
+      const commentRef = doc(postRef, "comments", cid);
+      const snap = await getDoc(commentRef);
+      if (!snap.exists()) return;
+      const data = snap.data();
+      let likedBy = data.likedBy || [];
+      const hasLiked = likedBy.includes(currentUser.uid);
+      hasLiked ? likedBy = likedBy.filter(uid => uid !== currentUser.uid) : likedBy.push(currentUser.uid);
+      await updateDoc(commentRef, { likedBy });
+      loadComments();
+    });
+
+    window.editNote = function(i) {
+      currentNoteIndex = i;
+      const noteText = document.getElementById(`note-${i}`)?.innerText || "";
+      document.getElementById("noteInput").value = noteText === "Not eklenmemiş." ? "" : noteText;
+      document.getElementById("noteModal").style.display = "flex";
+    }
+
+    window.closeModal = function() {
+      document.getElementById("noteModal").style.display = "none";
+    }
+
+    window.saveNote = async function() {
+      const newNote = document.getElementById("noteInput").value.trim();
+      await updateDoc(postRef, {
+        [`step${currentNoteIndex + 1}Note`]: newNote,
+        progressStep: currentNoteIndex + 1 > 2 ? 3 : currentNoteIndex + 1
+      });
+      closeModal();
+      loadPost();
+    }
+
+    loadPost();
+  </script>
+
+  <!-- Modal -->
+  <div id="noteModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+    <div style="background:white;padding:20px 24px 20px 20px;border-radius:12px;max-width:400px;width:90%;">
+      <h3>Notu Düzenle</h3>
+      <textarea id="noteInput" rows="4" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;"></textarea>
+      <div style="margin-top:10px;text-align:right;">
+        <button onclick="closeModal()" style="margin-right:8px;">İptal</button>
+        <button onclick="saveNote()" style="background:orange;color:white;padding:6px 12px;border:none;border-radius:6px;">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+  window.toggleDropdown = function () {
+    const dropdown = document.getElementById("dropdown");
+    dropdown.classList.toggle("show");
+  };
+
+  window.logout = function () {
+    import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js").then(({ getAuth, signOut }) => {
+      const auth = getAuth();
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      }).catch((err) => {
+        alert("Çıkış yapılırken hata oluştu.");
+        console.error(err);
+      });
+    });
+  };
+
+  // Menü dışına tıklanınca kapansın
+  document.addEventListener("click", function (e) {
+    const menu = document.querySelector(".profile-menu");
+    if (!menu.contains(e.target)) {
+      document.getElementById("dropdown")?.classList.remove("show");
+    }
+  });
+</script>
+
+</html>
