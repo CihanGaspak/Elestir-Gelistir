@@ -57,7 +57,7 @@ document.getElementById("register-form").addEventListener("submit", function (e)
       return setDoc(doc(db, "users", user.uid), {
         username: username,
         email: email,
-        photoUrl: "avatars/avatar1.png" // varsayılan avatar
+        photoUrl: "assets/avatars/avatar1.png" // varsayılan avatar
       }).then(() => {
         alert("Kayıt başarılı!");
         window.location.href = "login.html";

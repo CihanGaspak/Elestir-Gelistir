@@ -225,6 +225,9 @@ if (shareBtn) {
     btn.classList.toggle('active', i === index);
   });
 };
+window.goToPostDetail = function (postId) {
+  window.location.href = `post.html?id=${postId}`;
+};
 
 
   </script>

@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
                   'step1Note': '',
                   'step2Note': '',
                   'step3Note': '',
-                  'timestamp': FieldValue.serverTimestamp(),
+                  'date': FieldValue.serverTimestamp(),
                 };
 
                 await FirebaseFirestore.instance
