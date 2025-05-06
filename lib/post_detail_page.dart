@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
+
+import 'CommentSheet.dart';
 
 class PostDetailPage extends StatefulWidget {
   final Map<String, dynamic> post;
@@ -131,11 +134,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildAction(
-                    isLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined, // 👈 ikon artık duruma göre dolu/boş
+                    isLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined,
                     likeCount.toString(),
                         () async {
                       if (currentUserId == null) return;
-
                       final isAlreadyLiked = likedBy.contains(currentUserId);
                       final update = isAlreadyLiked
                           ? {
@@ -146,24 +148,56 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         'likesCount': FieldValue.increment(1),
                         'likedBy': FieldValue.arrayUnion([currentUserId])
                       };
-
                       await postRef.update(update);
-                      _fetchPostData();   // beğeni sayısını ve ikon durumunu yenile
+                      _fetchPostData();
                     },
-                    isLiked,              // 👈 aktif parametresine isLiked gönderildi
+                    isLiked,
                   ),
 
-                  _buildAction(Icons.comment_outlined, comments.length.toString(), () {}),
-                  _buildAction(Icons.share_outlined, ' ', () {}),
-                  _buildAction(Icons.bookmark_outline, ' ', () async {
-                    if (currentUserId == null) return;
-                    final update = isSaved
-                        ? {'savedBy': FieldValue.arrayRemove([currentUserId])}
-                        : {'savedBy': FieldValue.arrayUnion([currentUserId])};
-                    await postRef.update(update);
-                    _fetchPostData();
-                  }, isSaved),
-                  _buildAction(Icons.remove_red_eye_outlined, views.toString(), () {}, false),
+                  _buildAction(
+                    Icons.comment_outlined,
+                    comments.length.toString(),
+                        () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (_) => CommentSheet(post: widget.post),
+                      ).then((_) => _loadComments()); // yorumdan sonra listeyi yenile
+                    },
+                  ),
+
+
+                  _buildAction(
+                    Icons.share_outlined,
+                    ' ',
+                        () {
+                      final shareText = content.trim().isEmpty
+                          ? 'Eleştir-Geliştir uygulamasındaki bir gönderiye göz at!'
+                          : content;
+                      Share.share(shareText); // ← içeriği paylaş
+                    },
+                  ),
+
+                  _buildAction(
+                    isSaved ? Icons.bookmark : Icons.bookmark_outline,
+                    ' ',
+                        () async {
+                      if (currentUserId == null) return;
+                      final update = isSaved
+                          ? {'savedBy': FieldValue.arrayRemove([currentUserId])}
+                          : {'savedBy': FieldValue.arrayUnion([currentUserId])};
+                      await postRef.update(update);
+                      _fetchPostData();
+                    },
+                    isSaved,
+                  ),
+
+                  _buildAction(
+                    Icons.remove_red_eye_outlined,
+                    views.toString(),
+                        () {}, // Görüntüleme pasif; sadece sayıyı gösteriyor
+                    false,
+                  ),
                 ],
               ),
               const Divider(height: 32),
@@ -268,67 +302,81 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 separatorBuilder: (_, __) => const Divider(),
                 itemBuilder: (context, index) {
                   final c = comments[index];
+                  final authorId = c['authorId'] ?? '';
                   final likedBy = List<String>.from(c['likedBy'] ?? []);
                   final isLiked = currentUserId != null && likedBy.contains(currentUserId);
                   final timestamp = c['date'] as Timestamp?;
-                  final dateStr = timestamp != null ? DateFormat('dd.MM.yyyy HH:mm').format(timestamp.toDate()) : '';
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage: (c['authorPhotoUrl'] ?? '').startsWith('assets/')
-                            ? AssetImage(c['authorPhotoUrl']) as ImageProvider
-                            : NetworkImage(c['authorPhotoUrl'] ?? ''),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Kullanıcı adı ve yorum aynı satırda
-                            RichText(
-                              text: TextSpan(
-                                style: const TextStyle(color: Colors.black),
-                                children: [
-                                  TextSpan(
-                                    text: (c['authorName'] ?? 'Kullanıcı') + ' ',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  TextSpan(
-                                    text: c['text'] ?? '',
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  final dateStr = timestamp != null
+                      ? DateFormat('dd.MM.yyyy HH:mm').format(timestamp.toDate())
+                      : '';
+
+                  return FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance.collection('users').doc(authorId).get(),
+                    builder: (context, snapshot) {
+                      String photoUrl = c['authorPhotoUrl'] ?? '';
+                      if (snapshot.hasData && snapshot.data!.exists) {
+                        final userData = snapshot.data!.data() as Map<String, dynamic>;
+                        photoUrl = userData['photoUrl'] ?? photoUrl;
+                      }
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundImage: photoUrl.startsWith('assets/')
+                                ? AssetImage(photoUrl) as ImageProvider
+                                : NetworkImage(photoUrl),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  dateStr,
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                ),
-                                GestureDetector(
-                                  onTap: () => _toggleCommentLike(c['id'], likedBy),
-                                  child: Row(
+                                RichText(
+                                  text: TextSpan(
+                                    style: const TextStyle(color: Colors.black, fontSize: 14),
                                     children: [
-                                      Icon(
-                                        isLiked ? Icons.favorite : Icons.favorite_border,
-                                        color: isLiked ? Colors.red : Colors.grey,
-                                        size: 18,
+                                      TextSpan(
+                                        text: (c['authorName'] ?? 'Kullanıcı') + ' ',
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
                                       ),
-                                      const SizedBox(width: 4),
-                                      Text('${likedBy.length}'),
+                                      TextSpan(
+                                        text: c['text'] ?? '',
+                                      ),
                                     ],
                                   ),
                                 ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      dateStr,
+                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () => _toggleCommentLike(c['id'], likedBy),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            isLiked ? Icons.favorite : Icons.favorite_border,
+                                            color: isLiked ? Colors.red : Colors.grey,
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text('${likedBy.length}'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),

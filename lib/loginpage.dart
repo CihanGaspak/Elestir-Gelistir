@@ -63,7 +63,7 @@ class _LoginPageState extends State<LoginPage> {
         'uid'      : cred.user!.uid,
         'email'    : cred.user!.email,
         'username' : regUsername.text.trim(),
-        'photoUrl' : '',
+        'photoUrl' : 'assets/avatars/avatar1.png',
       });
 
       _alert('Kayıt başarılı! Giriş yapabilirsiniz.', ok: true);
@@ -91,7 +91,8 @@ class _LoginPageState extends State<LoginPage> {
   );
 
   bool _validEmail(String e) =>
-      RegExp(r"^[\w-.]+@([\w-]+\.)+[\w-]{2,4}\$").hasMatch(e);
+      RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(e);
+
 
   @override
   Widget build(BuildContext context) => Scaffold(

@@ -12,16 +12,16 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // 🔴  Gerçek-zamanlı gönderi akışı
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _postsStream;
 
-  // -------------- Kullanıcı bilgisi --------------
+  // ✅ Tüm kaydedilen gönderiler için
+  late Future<List<Map<String, dynamic>>> savedPostsFuture;
+
   String _photoUrl = '';
   String name = "Kullanıcı";
   String username = "@kullanici";
   String bio = "Nisan değilse Mayıs";
 
-  // (istatistik örnek, veri tabanınızda yoksa kaldırabilirsiniz)
   int followers = 143;
   int following = 87;
   double helpfulness = 8.9;
@@ -30,7 +30,6 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
 
-    // avatar / isim
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadUserInfo());
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -38,6 +37,17 @@ class _ProfilePageState extends State<ProfilePage> {
         .collection('posts')
         .where('authorId', isEqualTo: uid)
         .snapshots();
+
+    // ✅ Kaydedilen gönderileri yükle
+    savedPostsFuture = FirebaseFirestore.instance
+        .collection('posts')
+        .where('savedBy', arrayContains: uid)
+        .get()
+        .then((snap) => snap.docs.map((d) {
+      final m = d.data();
+      m['id'] = d.id;
+      return m;
+    }).toList());
   }
 
   Future<void> _loadUserInfo() async {
@@ -52,7 +62,6 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  // ---------- Tek bir tab listesi ----------
   Widget _buildPostTab(
       AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snap,
       bool Function(Map<String, dynamic>) filter,
@@ -126,24 +135,15 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: 8),
 
-            // ----------- STREAM -----------
             Expanded(
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: _postsStream,
                 builder: (context, snap) {
-                  // --- sayaçlar ---
                   final docs = snap.hasData ? snap.data!.docs : [];
-                  final supportCnt  = docs.where((d) => (d['progressStep'] ?? 0) < 3).length;
+                  final supportCnt = docs.where((d) => (d['progressStep'] ?? 0) < 3).length;
                   final solutionCnt = docs.where((d) => (d['progressStep'] ?? 0) == 3).length;
 
-// 🔥 Kaydedilenler
-                  final uid = FirebaseAuth.instance.currentUser?.uid;
-                  final savedCnt   = docs.where((d) {
-                    final savedBy = List<String>.from(d['savedBy'] ?? []);
-                    return uid != null && savedBy.contains(uid);
-                  }).length;
-
-
+                  // ✅ Kaydedilen sayısı ayrı hesaplanmaz artık
                   return Column(
                     children: [
                       TabBar(
@@ -151,24 +151,44 @@ class _ProfilePageState extends State<ProfilePage> {
                         unselectedLabelColor: Colors.grey,
                         indicatorColor: primaryColor,
                         tabs: [
-                          Tab(icon: const Icon(Icons.timelapse),  text: 'Devam ($supportCnt)'),
+                          Tab(icon: const Icon(Icons.timelapse), text: 'Devam ($supportCnt)'),
                           Tab(icon: const Icon(Icons.check_circle), text: 'Bitti ($solutionCnt)'),
-                          Tab(icon: const Icon(Icons.bookmark),     text: 'Kaydet ($savedCnt)'),
+                          Tab(
+                            icon: const Icon(Icons.bookmark),
+                            child: FutureBuilder<List<Map<String, dynamic>>>(
+                              future: savedPostsFuture,
+                              builder: (context, snap) {
+                                final count = snap.hasData ? snap.data!.length : 0;
+                                return Text('Kaydet ($count)');
+                              },
+                            ),
+                          ),
+
                         ],
                       ),
                       Expanded(
                         child: TabBarView(
                           children: [
-                            // Devam
                             _buildPostTab(snap, (p) => (p['progressStep'] ?? 0) < 3),
-                            // Bitti
                             _buildPostTab(snap, (p) => (p['progressStep'] ?? 0) == 3),
-                            // Kaydedilenler
-                            _buildPostTab(snap, (p) {
-                              final uid = FirebaseAuth.instance.currentUser?.uid;
-                              final saved = List<String>.from(p['savedBy'] ?? []);
-                              return uid != null && saved.contains(uid);
-                            }),
+
+                            // ✅ Kaydedilenler sekmesi
+                            FutureBuilder<List<Map<String, dynamic>>>(
+                              future: savedPostsFuture,
+                              builder: (context, savedSnap) {
+                                if (!savedSnap.hasData) {
+                                  return const Center(child: CircularProgressIndicator());
+                                }
+                                final savedPosts = savedSnap.data!;
+                                if (savedPosts.isEmpty) {
+                                  return const Center(child: Text("Kaydedilen gönderi yok."));
+                                }
+                                return ListView.builder(
+                                  itemCount: savedPosts.length,
+                                  itemBuilder: (_, i) => PostCard(post: savedPosts[i]),
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ),

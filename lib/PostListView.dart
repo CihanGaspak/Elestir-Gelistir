@@ -19,6 +19,7 @@ class PostListViewState extends State<PostListView>
   bool _isLoading = false;
   bool _hasMore = true;
   bool _isRefreshing = false;
+  final _postController = TextEditingController();
 
   @override
   void initState() {
@@ -31,7 +32,7 @@ class PostListViewState extends State<PostListView>
   void didUpdateWidget(PostListView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.category != widget.category) {
-      _refreshPosts();
+      refreshPosts();
     }
   }
 
@@ -80,7 +81,7 @@ class PostListViewState extends State<PostListView>
     if (mounted) setState(() => _isLoading = false);
   }
 
-  Future<void> _refreshPosts() async {
+  Future<void> refreshPosts() async {
     if (_isRefreshing) return;
     _isRefreshing = true;
 
@@ -110,7 +111,7 @@ class PostListViewState extends State<PostListView>
   }
 
   void refreshList() async {
-    await _refreshPosts();
+    await refreshPosts();
   }
 
   @override
@@ -129,7 +130,7 @@ class PostListViewState extends State<PostListView>
         return false;
       },
       child: RefreshIndicator(
-        onRefresh: _refreshPosts,
+        onRefresh: refreshPosts,
         child: ListView.builder(
           key: const PageStorageKey('post_list'),
           controller: _scrollController,
