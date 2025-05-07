@@ -1,7 +1,16 @@
 // Firebase modüllerini al
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  serverTimestamp // BU EKLENDİ
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 // Firebase yapılandırması
 const firebaseConfig = {
@@ -55,9 +64,11 @@ document.getElementById("register-form").addEventListener("submit", function (e)
     .then((userCredential) => {
       const user = userCredential.user;
       return setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
         username: username,
         email: email,
-        photoUrl: "assets/avatars/avatar1.png" // varsayılan avatar
+        photoUrl: "assets/avatars/avatar1.png", // varsayılan avatar
+        joinedAt: serverTimestamp()
       }).then(() => {
         alert("Kayıt başarılı!");
         window.location.href = "login.html";

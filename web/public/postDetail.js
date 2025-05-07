@@ -122,6 +122,11 @@ async function loadPost() {
       date: new Date(),
       likedBy: []
     });
+
+    await updateDoc(postRef, {
+      commentsCount: increment(1)
+    });
+
     loadComments();
     document.getElementById("commentInput").value = "";
     document.getElementById("charCount").textContent = "0 / 140";

@@ -1,0 +1,119 @@
+<div class="left-sidebar">
+    <!-- Gelişmiş Filtreler -->
+    <div class="widget advanced-filter-box">
+      <h3><i class="fas fa-search"></i> Gelişmiş Filtre</h3>
+      
+      <label>
+        <input type="checkbox" id="filter-gelistir" />
+        Sadece "Geliştir" aşamasında
+      </label>
+  
+      <div class="filter-group">
+        <label for="filter-category">Kategori:</label>
+        <select id="filter-category">
+          <option value="">Hepsi</option>
+          <option value="Eğitim">Eğitim</option>
+          <option value="Spor">Spor</option>
+          <option value="Tamirat">Tamirat</option>
+          <option value="Araç Bakım">Araç Bakım</option>
+          <option value="Sağlık">Sağlık</option>
+          <option value="Teknoloji">Teknoloji</option>
+          <option value="Kişisel Gelişim">Kişisel Gelişim</option>
+          <option value="Sanat">Sanat</option>
+          <option value="Yazılım">Yazılım</option>
+        </select>
+      </div>
+  
+      <div class="filter-group">
+        <label for="filter-likes">Minimum beğeni:</label>
+        <input type="number" id="filter-likes" min="0" value="0" />
+      </div>
+  
+      <button onclick="applyFilters()" class="filter-btn">Filtrele</button>
+    </div>
+  
+    <!-- Yardım / Bilgilendirme -->
+    <div class="widget info-box">
+      <h3><i class="fas fa-question-circle"></i> Yardım</h3>
+      <p><strong>Eleştir-Geliştir</strong> platformu, kullanıcıların fikirlerini paylaştığı, diğerlerinin katkı sağladığı bir sosyal fikir alışverişi ortamıdır.</p>
+      <ul>
+        <li>📝 Gönderi oluştur, kategori seç.</li>
+        <li>💬 Diğer kullanıcılar eleştir, düşündür, geliştir notları bırakır.</li>
+        <li>🌟 Beğen, kaydet, yorumla ve yardım et!</li>
+      </ul>
+    </div>
+  </div>
+  
+  <style>
+  .left-sidebar {
+    padding: 20px;
+    max-width: 260px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.05);
+  }
+  
+  .widget {
+    margin-bottom: 24px;
+  }
+  
+  .widget h3 {
+    font-size: 16px;
+    color: #ff9800;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .filter-group {
+    margin: 10px 0;
+  }
+  
+  .filter-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+  
+  .filter-group select,
+  .filter-group input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  }
+  
+  .filter-btn {
+    width: 100%;
+    background-color: #26a69a;
+    color: white;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s ease;
+    margin-top: 10px;
+  }
+  
+  .filter-btn:hover {
+    background-color: #2bbbad;
+  }
+  
+  .info-box p {
+    font-size: 14px;
+    color: #444;
+  }
+  
+  .info-box ul {
+    padding-left: 20px;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .info-box li {
+    margin-bottom: 6px;
+  }
+  </style>
+  

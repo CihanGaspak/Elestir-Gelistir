@@ -147,56 +147,150 @@
   color: #444;
 }
 
+.daily-highlight {
+  background: linear-gradient(135deg, #ffe6cc, #fff8f0);
+  padding: 16px;
+  border-radius: 12px;
+  margin: 20px auto;
+  max-width: 700px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.highlight-header {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff7700;
+  margin-bottom: 10px;
+}
+
+.highlight-card {
+  display: flex;
+  gap: 12px;
+  cursor: pointer;
+  background: white;
+  border-radius: 10px;
+  padding: 12px;
+  transition: 0.2s ease;
+}
+
+.highlight-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.highlight-avatar img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.highlight-content h3 {
+  margin: 0;
+  color: #333;
+}
+
+.highlight-content p {
+  margin: 4px 0;
+  color: #555;
+  font-style: italic;
+}
+
+.highlight-meta {
+  font-size: 12px;
+  color: #999;
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.main-container {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  flex-wrap: wrap;
+}
+
+.left-column,
+.right-column {
+  flex: 0 0 260px;
+}
+
+.center-column {
+  flex: 1 1 700px;
+  max-width: 700px;
+  min-width: 300px;
+}
 
   </style>
 </head>
 <body>
+
+  
   <div id="navbar-placeholder"></div>
 
-  <!-- Kategori Barı -->
-  <div class="category-bar" id="categoryBar">
-    <button class="category-btn active" onclick="filterPosts('Tümü')">Tümü</button>
-    <button class="category-btn" onclick="filterPosts('Eğitim')">Eğitim</button>
-    <button class="category-btn" onclick="filterPosts('Spor')">Spor</button>
-    <button class="category-btn" onclick="filterPosts('Tamirat')">Tamirat</button>
-    <button class="category-btn" onclick="filterPosts('Araç Bakım')">Araç Bakım</button>
-    <button class="category-btn" onclick="filterPosts('Sağlık')">Sağlık</button>
-    <button class="category-btn" onclick="filterPosts('Teknoloji')">Teknoloji</button>
-    <button class="category-btn" onclick="filterPosts('Kişisel Gelişim')">Kişisel Gelişim</button>
-    <button class="category-btn" onclick="filterPosts('Sanat')">Sanat</button>
-    <button class="category-btn" onclick="filterPosts('Yazılım')">Yazılım</button>
-  </div>
-
-  <!-- Yazı Paylaşma Alanı -->
-  <div class="write-post-container">
-    <div class="user-profile" style="margin-bottom: 10px;">
-      <img id="user-avatar" src="assets/avatars/avatar1.png" class="avatar" alt="Avatar" />
-      <div><p id="post-username">Kullanıcı</p></div>
+  <div class="main-container">
+    <div class="left-column">
+      <div id="left-sidebar-placeholder"></div>
     </div>
-
-    <div class="post-input-container">
-      <textarea id="post-content" rows="3" maxlength="280" placeholder="Kafandaki soru işaretleri nedir?" oninput="updateCharCount()"></textarea>
-      <div style="text-align: right; font-size: 12px; color: gray;">
-        <span id="char-count">0</span>/280
+  
+    <div class="center-column">
+      <!-- Kategori Barı -->
+    <div class="category-bar" id="categoryBar">
+      <button class="category-btn active" onclick="filterPosts('Tümü')">Tümü</button>
+      <button class="category-btn" onclick="filterPosts('Eğitim')">Eğitim</button>
+      <button class="category-btn" onclick="filterPosts('Spor')">Spor</button>
+      <button class="category-btn" onclick="filterPosts('Tamirat')">Tamirat</button>
+      <button class="category-btn" onclick="filterPosts('Araç Bakım')">Araç Bakım</button>
+      <button class="category-btn" onclick="filterPosts('Sağlık')">Sağlık</button>
+      <button class="category-btn" onclick="filterPosts('Teknoloji')">Teknoloji</button>
+      <button class="category-btn" onclick="filterPosts('Kişisel Gelişim')">Kişisel Gelişim</button>
+      <button class="category-btn" onclick="filterPosts('Sanat')">Sanat</button>
+      <button class="category-btn" onclick="filterPosts('Yazılım')">Yazılım</button>
+    </div>
+  
+    <!-- Yazı Paylaşma Alanı -->
+    <div class="write-post-container">
+      <div class="user-profile" style="margin-bottom: 10px;">
+        <img id="user-avatar" src="assets/avatars/avatar1.png" class="avatar" alt="Avatar" />
+        <div><p id="post-username">Kullanıcı</p></div>
       </div>
-      <select id="selected-category" class="category-select">
-        <option value="" disabled selected>Kategori seç</option>
-        <option value="Eğitim">Eğitim</option>
-        <option value="Spor">Spor</option>
-        <option value="Tamirat">Tamirat</option>
-        <option value="Araç Bakım">Araç Bakım</option>
-        <option value="Sağlık">Sağlık</option>
-        <option value="Teknoloji">Teknoloji</option>
-        <option value="Kişisel Gelişim">Kişisel Gelişim</option>
-        <option value="Sanat">Sanat</option>
-        <option value="Yazılım">Yazılım</option>
-      </select>
-      <button id="submit-button" class="btn" onclick="submitPost()" disabled>Gönder</button>
+  
+      <div class="post-input-container">
+        <textarea id="post-content" rows="3" maxlength="280" placeholder="Kafandaki soru işaretleri nedir?" oninput="updateCharCount()"></textarea>
+        <div style="text-align: right; font-size: 12px; color: gray;">
+          <span id="char-count">0</span>/280
+        </div>
+        <select id="selected-category" class="category-select">
+          <option value="" disabled selected>Kategori seç</option>
+          <option value="Eğitim">Eğitim</option>
+          <option value="Spor">Spor</option>
+          <option value="Tamirat">Tamirat</option>
+          <option value="Araç Bakım">Araç Bakım</option>
+          <option value="Sağlık">Sağlık</option>
+          <option value="Teknoloji">Teknoloji</option>
+          <option value="Kişisel Gelişim">Kişisel Gelişim</option>
+          <option value="Sanat">Sanat</option>
+          <option value="Yazılım">Yazılım</option>
+        </select>
+        <button id="submit-button" class="btn" onclick="submitPost()" disabled>Gönder</button>
+      </div>
     </div>
+  
+    <!-- Günün Geliştirisi Alanı -->
+  <div id="daily-highlight"></div>
+  
+    <!-- Gönderi Listeleme Alanı -->
+  <div id="post-feed" style="max-width: 700px; margin: auto; margin-top: 20px;"></div>
+    </div>
+  
+    
+  <!-- Sağ Sütun -->
+  <div class="right-column">
+    <div id="right-sidebar-placeholder"></div>
   </div>
-
-  <!-- Gönderi Listeleme Alanı -->
-<div id="post-feed" style="max-width: 700px; margin: auto; margin-top: 20px;"></div>
+  </div>
 
 
   <!-- Dinamik Navbar -->
@@ -213,14 +307,16 @@
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import {
-      getFirestore,
-      doc,
-      getDoc,
-      addDoc,
-      collection,
-      query,
-      onSnapshot
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  getFirestore,
+  doc,
+  getDoc,
+  addDoc,
+  collection,
+  query,
+  onSnapshot,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
   
     const firebaseConfig = {
       apiKey: "AIzaSyByrxwGrUPfIFUjsG2Nsv6niu5aM_5v4wM",
@@ -271,7 +367,7 @@
         authorName: currentUser.username,
         authorPhotoUrl: currentUser.photoUrl || '',
         date: new Date(),
-        progressStep: 1,
+        progressStep: 0,
         likedBy: [],
         savedBy: [],
         views: 0,
@@ -414,11 +510,51 @@
         data: doc.data()
       }));
       renderPosts("Tümü");
+
+      // GÜNÜN GELİŞTİRİSİ BURADA ÇEKİLSİN
+      loadDailyPost();
     });
 
     window.goToPostDetail = function (docId) {
   window.location.href = `post.html?id=${docId}`;
 };
+
+async function loadDailyPost() {
+  const postRef = collection(db, "posts");
+  const querySnapshot = await getDocs(postRef);
+
+  const allPosts = [];
+  querySnapshot.forEach(doc => {
+    allPosts.push({ id: doc.id, ...doc.data() });
+  });
+
+  if (allPosts.length === 0) return;
+
+  const randomIndex = Math.floor(Math.random() * allPosts.length);
+  const post = allPosts[randomIndex];
+
+  const dailyHTML = `
+  <div class="daily-highlight">
+    <div class="highlight-header">
+      <span>✨ Günün Eleştirisi</span>
+    </div>
+    <div class="highlight-card" onclick="goToPostDetail('${post.id}')">
+      <div class="highlight-avatar">
+        <img src="${post.authorPhotoUrl || 'assets/avatars/avatar1.png'}" alt="Kullanıcı Avatarı">
+      </div>
+      <div class="highlight-content">
+        <h3>Kategori: <span>${post.category || 'Genel'}</span></h3>
+        <p>"${post.content?.substring(0, 120) || ''}..."</p>
+        <div class="highlight-meta">
+          <span>👤 ${post.authorName || 'Kullanıcı'}</span>
+          <span>🗓️ ${new Date(post.date?.seconds * 1000).toLocaleDateString("tr-TR")}</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById("daily-highlight").innerHTML = dailyHTML;
+}
 
   </script>
   
@@ -440,7 +576,28 @@
         button.style.cursor = "not-allowed";
       }
     }
-  </script>  
+  </script>
+  
+  <script type="module">
+    // Sol sütun
+    fetch('sol_sutun.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('left-sidebar-placeholder').innerHTML = html;
+        return import('./leftSidebar.js');
+      })
+      .catch(console.error);
+  
+    // Sağ sütun
+    fetch('sag_sutun.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('right-sidebar-placeholder').innerHTML = html;
+        return import('./rightSidebar.js');
+      })
+      .catch(console.error);
+  </script>
+  
   
 </body>
 </html>

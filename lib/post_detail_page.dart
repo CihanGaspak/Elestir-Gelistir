@@ -162,7 +162,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         context: context,
                         isScrollControlled: true,
                         builder: (_) => CommentSheet(post: widget.post),
-                      ).then((_) => _loadComments()); // yorumdan sonra listeyi yenile
+                      ).then((_) async {
+                        await _loadComments();
+                        setState(() {}); // 👈 Bu satırı ekle
+                      });
+                          // yorumdan sonra listeyi yenile
                     },
                   ),
 

@@ -41,6 +41,43 @@
     .step-section { margin-top: 10px; }
     .step-title { font-weight: bold; margin-top: 10px; }
     .step-body { padding-left: 10px; color: #555; }
+    .profile-texts {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #222;
+}
+
+.profile-texts p {
+  margin: 4px 0;
+}
+
+.profile-texts .stats {
+  display: flex;
+  gap: 20px;
+  margin-top: 8px;
+  font-size: 15px;
+}
+
+.profile-texts .stats div {
+  text-align: center;
+}
+.bio-text {
+  margin-top: 6px;
+  font-size: 15px;
+  color: #111;
+}
+
+.stats.clickable-stats div {
+  cursor: pointer;
+  transition: color 0.2s;
+  text-align: center;
+}
+
+.stats.clickable-stats div:hover {
+  color: #ffa726;
+}
+
   </style>
 </head>
 <body>
@@ -48,9 +85,34 @@
   <div class="profile-header">
     <img src="assets/avatars/avatar1.png" class="avatar" alt="Avatar" />
     <div class="profile-texts">
-      <h2 id="profile-name">Kullanıcı</h2>
-      <p id="profile-username">@username</p>
+      <h2 id="profile-name">cihan</h2>
+      <p id="profile-username">@ilimbeser</p>
+    
+      <!-- Biyografi -->
+      <p class="bio-text" style="font-weight: 600;">
+        <span id="profile-bio">Nisan değilse Mayıs</span>
+      </p>
+    
+      <!-- İstatistikler -->
+      <div class="stats clickable-stats" style="font-weight: bold;">
+        <div onclick="alert('Takipçi listesi yakında');">
+          <strong id="followers-count">143</strong><br>Takipçi
+        </div>
+        <div onclick="alert('Takip edilenler yakında');">
+          <strong id="following-count">87</strong><br>Takip
+        </div>
+        <div>
+          <strong id="usefulness-score">8.9/10</strong><br>Faydalılık
+        </div>
+        <div>
+          <strong id="posts-count">0</strong><br>Post
+        </div>
+      </div>
     </div>
+    
+  </div>
+  
+    
   </div>
 
   <div class="tab-buttons">
@@ -67,7 +129,12 @@
     import { toggleLike, toggleSave } from './interactions.js';
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import {
+  getFirestore, doc, getDoc,
+  collection, query, where, onSnapshot, getDocs
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+
 
     const firebaseConfig = {
       apiKey: "AIzaSyByrxwGrUPfIFUjsG2Nsv6niu5aM_5v4wM",
@@ -86,6 +153,15 @@
   const isLiked = post.likedBy?.includes(uid);
   const isSaved = post.savedBy?.includes(uid);
   const progress = post.progressStep ?? 0;
+
+  // 🔽 URL'den uid parametresini al
+const params = new URLSearchParams(window.location.search);
+const profileUid = params.get("uid");
+if (!profileUid) {
+  alert("Profil bulunamadı.");
+  throw new Error("UID eksik");
+}
+
 
   return `
     <div class="post-card">
@@ -132,19 +208,74 @@
 
 
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+onAuthStateChanged(auth, async (user) => {
+  const params = new URLSearchParams(window.location.search);
+  const profileUid = params.get("uid") || user.uid;
+  if (!profileUid) return;
 
-      // Profil Bilgisi
-      const userSnap = await getDoc(doc(db, "users", user.uid));
-      if (userSnap.exists()) {
-        const data = userSnap.data();
-        document.querySelector(".profile-header img.avatar").src = `assets/avatars/${data.photoUrl?.split("avatars/")[1] || "avatar1.png"}`;
-        document.getElementById("profile-name").textContent = data.username || "Kullanıcı";
-        document.getElementById("profile-username").textContent = `@${user.email.split("@")[0]}`;
-      }
+  const userSnap = await getDoc(doc(db, "users", profileUid));
+if (userSnap.exists()) {
+  const data = userSnap.data();
+  document.querySelector(".profile-header img.avatar").src =
+    `assets/avatars/${data.photoUrl?.split("avatars/")[1] || "avatar1.png"}`;
+  document.getElementById("profile-name").textContent = data.username || "Kullanıcı";
+  document.getElementById("profile-username").textContent = `@${data.username || "kullanici"}`;
+  document.getElementById("followers-count").textContent = data.followers || 0;
+  document.getElementById("following-count").textContent = data.following || 0;
+  document.getElementById("usefulness-score").textContent = data.usefulness || "0/10";
 
-      const q = query(collection(db, "posts"), where("authorId", "==", user.uid));
+  // ✅ Post sayısını hesapla ve göster
+  const postQuery = query(collection(db, "posts"), where("authorId", "==", profileUid));
+  const postSnapshot = await getDocs(postQuery);
+  document.getElementById("posts-count").textContent = postSnapshot.size || 0;
+  const isOwnProfile = user && user.uid === profileUid;
+
+  // 👇 Kaydedilenler sekmesini gizle (eğer kendi profili değilse)
+  if (isOwnProfile) {
+  const editBtn = document.createElement("button");
+  editBtn.textContent = "Profili Düzenle";
+  editBtn.onclick = () => alert("Düzenleme ekranı yakında");
+  
+  // Şık görünmesi için stil
+  editBtn.style.marginLeft = "auto";
+  editBtn.style.marginTop = "10px";
+  editBtn.style.padding = "8px 16px";
+  editBtn.style.borderRadius = "20px";
+  editBtn.style.border = "none";
+  editBtn.style.backgroundColor = "#ffa726";
+  editBtn.style.color = "white";
+  editBtn.style.fontWeight = "bold";
+  editBtn.style.cursor = "pointer";
+
+  document.querySelector(".profile-header").appendChild(editBtn);
+}
+if (isOwnProfile) {
+  const logoutBtn = document.createElement("button");
+  logoutBtn.textContent = "Çıkış Yap";
+  logoutBtn.onclick = () => auth.signOut().then(() => window.location.href = "login.html");
+
+  // Stil
+  logoutBtn.style.marginLeft = "10px";
+  logoutBtn.style.marginTop = "10px";
+  logoutBtn.style.padding = "8px 16px";
+  logoutBtn.style.borderRadius = "20px";
+  logoutBtn.style.border = "none";
+  logoutBtn.style.backgroundColor = "#d32f2f";
+  logoutBtn.style.color = "white";
+  logoutBtn.style.fontWeight = "bold";
+  logoutBtn.style.cursor = "pointer";
+
+  document.querySelector(".profile-header").appendChild(logoutBtn);
+}
+
+
+}
+
+      
+      // Firebase'den gelen veriler
+
+
+      const q = query(collection(db, "posts"), where("authorId", "==", profileUid));
       onSnapshot(q, (snapshot) => {
         const devam = document.getElementById("tab-0");
         const tamam = document.getElementById("tab-1");
@@ -156,12 +287,12 @@
         snapshot.forEach(docSnap => {
           const post = docSnap.data();
           const docId = docSnap.id;
-          const html = generatePostHTML(post, docId, user.uid);
+          const html = generatePostHTML(post, docId, profileUid);
 
           if (post.progressStep < 3) devam.insertAdjacentHTML("beforeend", html);
           else tamam.insertAdjacentHTML("beforeend", html);
 
-          if (post.savedBy?.includes(user.uid)) {
+          if (post.savedBy?.includes(profileUid)) {
             kayit.insertAdjacentHTML("beforeend", html);
           }
 
@@ -191,8 +322,8 @@ if (shareBtn) {
 
             if (likeBtn) {
               likeBtn.addEventListener("click", async () => {
-                const isLiked = post.likedBy?.includes(user.uid);
-                await toggleLike(docId, user.uid, post.likedBy || []);
+                const isLiked = post.likedBy?.includes(auth.currentUser?.uid);
+                await toggleLike(docId, profileUid, post.likedBy || []);
                 const icon = likeBtn.querySelector("i");
                 let count = parseInt(likeBtn.textContent.trim().split(" ").pop());
                 icon.classList.replace(isLiked ? "fas" : "far", isLiked ? "far" : "fas");
@@ -202,8 +333,8 @@ if (shareBtn) {
 
             if (saveBtn) {
               saveBtn.addEventListener("click", async () => {
-                const isSaved = post.savedBy?.includes(user.uid);
-                await toggleSave(docId, user.uid, post.savedBy || []);
+                const isSaved = post.savedBy?.includes(auth.currentUser?.uid);
+                await toggleSave(docId, profileUid, post.savedBy || []);
                 const icon = saveBtn.querySelector("i");
                 icon.classList.replace(isSaved ? "fas" : "far", isSaved ? "far" : "fas");
               });
@@ -212,6 +343,17 @@ if (shareBtn) {
         });
       });
     });
+
+
+
+
+
+
+
+
+
+
+
 
     window.showTab = function(index) {
   const tabs = document.querySelectorAll('.tab-content');

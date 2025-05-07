@@ -30,7 +30,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: primaryColor,
         centerTitle: true,
-        title: const Text('Eleştir - Geliştir'),
+        title: const Text('Eleştir - Geliştir',style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
       ),
       body: Column(
         children: [

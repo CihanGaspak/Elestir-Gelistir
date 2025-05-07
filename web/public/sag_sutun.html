@@ -1,0 +1,141 @@
+<div class="right-sidebar">
+  <!-- En Çok Yardımcı Olanlar -->
+  <div class="widget">
+    <h3>🏆 En Çok Yardımcı Olanlar</h3>
+    <ol id="top-helpers"></ol>
+  </div>
+
+  <!-- Müdavimler -->
+  <div class="widget">
+    <h3>⏳ Müdavimler</h3>
+    <ul id="veteran-users"></ul>
+  </div>
+
+  <!-- Yeni Katılanlar -->
+  <div class="widget">
+    <h3>🎉 Yeni Katılanlar</h3>
+    <ul id="new-users"></ul>
+  </div>
+
+  <!-- Popüler Kategoriler -->
+  <div class="widget">
+    <h3>📊 Popüler Kategoriler</h3>
+    <ul class="tag-cloud" id="popular-categories"></ul>
+  </div>
+
+  <!-- Bugünün Sözü -->
+  <div class="quote-box">
+    💬 <strong>Bugünün Sözü:</strong><br>
+    “Bunca yıl sönmemiş umudum. <br> Nisan değilse Mayıs, Perşembe değilse Pazar.”
+  </div>
+</div>
+
+<style>
+  .right-sidebar {
+    padding: 20px;
+    max-width: 260px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .widget {
+    margin-bottom: 24px;
+  }
+
+  .widget h3 {
+    font-size: 16px;
+    color: #ff9800;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tag-cloud {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag-cloud li {
+    background: #f0f0f0;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mini-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ff9800;
+  }
+
+  #top-helpers, #veteran-users, #new-users {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .helper-card,
+  .veteran-card,
+  .new-user-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background-color: #fdfdfd;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+    transition: background 0.2s;
+  }
+
+  .helper-card:hover,
+  .veteran-card:hover,
+  .new-user-card:hover {
+    background-color: #fff3e0;
+  }
+
+  .helper-username {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    flex-grow: 1;
+  }
+
+  .helper-score {
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  .veteran-info,
+  .new-user-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .veteran-info span,
+  .new-user-info span {
+    font-size: 13px;
+    color: #555;
+  }
+
+  .quote-box {
+    font-size: 14px;
+    font-style: italic;
+    background: #fff9ec;
+    padding: 14px;
+    border-left: 5px solid #ffb74d;
+    border-radius: 10px;
+    color: #444;
+    line-height: 1.5;
+  }
+</style>
