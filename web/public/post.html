@@ -2,10 +2,11 @@
 <html lang="tr">
 <style>
   body {
-  font-family: sans-serif;
+  font-family: 'Segoe UI', 'Inter', sans-serif;
   margin: 0;
   padding: 0;
-  background: #f8f8f8;
+  background: #f5f5f5;
+  color: #333;
 }
 
 .topbar {
@@ -80,21 +81,55 @@
   background: #f0f0f0;
 }
 
+/* ✅ Post Detay Card */
 #post-container {
-  max-width: 800px;
-  margin: auto;
-  padding: 20px;
   background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  padding: 24px;
+  max-width: 700px;
+  margin: 40px auto;
+  position: relative;
+}
+
+.post-meta-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.progress-icons i {
+  font-size: 20px;
+  margin-right: 4px;
+  color: #ccc;
+}
+
+.progress-icons i.active {
+  color: orange;
+}
+
+.category-icon {
+  margin-top: 8px;
+  font-size: 18px;
+  color: #666;
+  text-align: center;
+}
+
+.category-label {
+  font-size: 13px;
+  color: #333;
+  margin-top: 4px;
 }
 
 .header {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #fff5e0;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 16px;
+  background: #fffdf5;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 20px;
 }
 
 .avatar {
@@ -107,8 +142,8 @@
 .actions {
   display: flex;
   justify-content: space-around;
+  margin: 20px 0;
   font-size: 16px;
-  margin-bottom: 20px;
 }
 
 .actions span {
@@ -120,10 +155,10 @@
 
 .step-card {
   background: #f9f9f9;
-  border: 1px solid #ccc;
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
+  border: 1px solid #ddd;
 }
 
 .step-card.editable {
@@ -131,29 +166,16 @@
   background-color: #fff8ec;
 }
 
-.comment {
-  background: #f1f1f1;
-  border: 1px solid #ccc;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.comment .top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 textarea {
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  padding: 10px;
   width: 100%;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  padding: 12px;
+  font-size: 14px;
 }
 
 button:disabled {
-  background-color: #ccc !important;
+  background-color: #ccc;
   cursor: not-allowed;
 }
 
@@ -161,37 +183,85 @@ button:enabled {
   background-color: orange;
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
 }
+
+/* ✅ Yorumlar */
 .comment {
-  position: relative;
-  background: #f1f1f1;
-  border: 1px solid #ccc;
+  background: #ffffff;
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.comment:hover {
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.comment .top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.comment .avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #f0f0f0;
+}
+
+.comment .info {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment .info .author {
+  font-weight: 600;
+  color: #333;
+}
+
+.comment .info .date {
+  font-size: 12px;
+  color: #888;
+}
+
+.comment-text {
+  margin-top: 10px;
+  font-size: 15px;
+  color: #444;
+  line-height: 1.4;
 }
 
 .comment-footer {
-  position: absolute;
-  top: 50%;
-  right: 16px;
-  transform: translateY(-50%);
-}
-
-.comment-like {
   cursor: pointer;
   color: #999;
   font-size: 14px;
   display: flex;
   align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+}
+
+.comment-like:hover i {
+  color: #ffa726;
 }
 
 .comment-like i {
-  margin-right: 4px;
+  font-size: 18px;
+  transition: color 0.2s;
 }
+.comment-like.active i {
+  color: #FB8C00;
+}
+
 
 
 
@@ -205,22 +275,35 @@ button:enabled {
 </head>
 <body>
   <!-- Navbar -->
-  <header class="topbar">
-    <div class="logo" onclick="window.location.href='index.html'">Eleştir-Geliştir</div>
-    <input type="text" class="search" placeholder="Ara...">
-    <div class="profile-menu">
-      <img id="profilePic" src="assets/avatars/avatar1.png" class="profile-img" onclick="toggleDropdown()">
-      <div id="dropdown" class="dropdown">
-        <a href="profile.html">👤 Profilim</a>
-        <a href="about.html">ℹ️ Hakkında</a>
-        <a href="contact.html">📧 Bize Ulaş</a>
-        <a href="#" onclick="logout()">🚪 Çıkış Yap</a>
-      </div>
-    </div>
-  </header>
+  <div id="navbar-placeholder"></div>
+  <div class="post-card">
 
   <!-- Post Detail Content -->
-  <div id="post-container"></div>
+  <div id="post-container">
+    <div class="header">
+      <img id="authorPhoto" class="avatar" src="assets/avatars/avatar1.png">
+      <div>
+        <div id="authorName">Yükleniyor...</div>
+        <div id="postDate" style="font-size: 12px; color: gray;">...</div>
+      </div>
+    </div>
+    <div id="postContent">Yükleniyor...</div>
+    <div class="actions">
+      <span id="likeBtn"><i class="far fa-thumbs-up"></i> <span id="likeCount">0</span></span>
+      <span><i class="far fa-comment"></i> <span id="commentCount">0</span></span>
+      <span id="saveBtn"><i class="far fa-bookmark"></i></span>
+      <span id="shareBtn"><i class="fas fa-share"></i></span>
+      <span><i class="far fa-eye"></i> <span id="viewCount">0</span></span>
+    </div>
+    <div id="steps"></div>
+    <h3>Yorum Yap</h3>
+    <textarea id="commentInput" rows="3" maxlength="140"></textarea>
+    <div>
+      <button id="sendCommentBtn">Gönder</button>
+    </div>
+    <h3>Yorumlar</h3>
+    <div id="comments"></div>
+  </div>
 
   <!-- Note Modal -->
   <div id="noteModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
@@ -259,5 +342,8 @@ button:enabled {
       }
     });
   </script>
+  <!-- Dinamik Navbar -->
+  <script type="module" src="navbar.js"></script>
+  <script type="module" src="postDetail.js"></script>
 </body>
 </html>

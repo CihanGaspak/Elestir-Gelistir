@@ -77,6 +77,60 @@
 .stats.clickable-stats div:hover {
   color: #ffa726;
 }
+/* Profil Düzenle ve Çıkış Yap butonları için stil */
+.profile-header button {
+  margin-left: 10px;
+  margin-top: 10px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: inline-block;
+}
+
+/* Profil Düzenle butonu yeşil olsun */
+/* Profil Düzenle butonu yeşil olsun */
+.profile-header button.profile-edit-btn {
+  background-color: #4CAF50; /* Canlı, orta ton yeşil */
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.profile-header button.profile-edit-btn:hover {
+  background-color: #45a040; /* Hover durumunda biraz daha koyu bir yeşil */
+}
+
+.profile-header button.profile-logout-btn {
+  background-color: #d32f2f;
+  color: white;
+}
+
+.profile-header button.profile-logout-btn:hover {
+  background-color: #c62828;
+}
+
+/* Butonlar arasındaki mesafeyi ayarlama */
+.profile-header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  margin: 20px auto;
+  max-width: 700px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.profile-texts {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #222;
+  margin-right: auto; /* Butonları sağa itmek için */
+}
+
 
   </style>
 </head>
@@ -126,253 +180,157 @@
 
   <!-- Firebase ve JS -->
   <script type="module">
-    import { toggleLike, toggleSave } from './interactions.js';
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import {
-  getFirestore, doc, getDoc,
-  collection, query, where, onSnapshot, getDocs
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { showProfileEditWidget } from './profileEdit.js';
+import { toggleLike, toggleSave } from './interactions.js';
+import { auth, db } from './firebase.js'; // ✔ Sadece buradan al
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { doc, getDoc, collection, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 
+async function generatePostHTML(post, docId, uid) {
+    const isLiked = post.likedBy?.includes(uid);
+    const isSaved = post.savedBy?.includes(uid);
+    const progress = post.progressStep ?? 0;
+    let authorPhoto = 'assets/avatars/avatar1.png';
+    let authorName = 'Kullanıcı';
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyByrxwGrUPfIFUjsG2Nsv6niu5aM_5v4wM",
-      authDomain: "elestir-gelistir.firebaseapp.com",
-      projectId: "elestir-gelistir",
-      storageBucket: "elestir-gelistir.appspot.com",
-      messagingSenderId: "329858460105",
-      appId: "1:329858460105:web:0a1940df3d7b57593b6018"
-    };
+    try {
+        const userSnap = await getDoc(doc(db, "users", post.authorId));
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            authorPhoto = userData.photoUrl || 'assets/avatars/avatar1.png';
+            authorName = userData.username || 'Kullanıcı';
+        }
+    } catch (e) {
+        console.error("Yazar bilgisi alınamadı", e);
+    }
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const db = getFirestore(app);
-
-    function generatePostHTML(post, docId, uid) {
-  const isLiked = post.likedBy?.includes(uid);
-  const isSaved = post.savedBy?.includes(uid);
-  const progress = post.progressStep ?? 0;
-
-  // 🔽 URL'den uid parametresini al
-const params = new URLSearchParams(window.location.search);
-const profileUid = params.get("uid");
-if (!profileUid) {
-  alert("Profil bulunamadı.");
-  throw new Error("UID eksik");
-}
-
-
-  return `
-    <div class="post-card">
-      <div onclick="goToPostDetail('${docId}')" style="cursor: pointer;">
-        <div class="post-header">
-          <img src="${post.authorPhotoUrl || 'assets/avatars/avatar1.png'}" class="avatar" alt="Avatar">
-          <div class="author-info">
-            <p class="author-name">${post.authorName || 'Kullanıcı'}</p>
-            <p class="post-date">${new Date(post.date?.seconds * 1000).toLocaleString("tr-TR")}</p>
-          </div>
+    return `
+        <div class="post-card">
+            <div onclick="goToPostDetail('${docId}')" style="cursor: pointer;">
+                <div class="post-header">
+                    <img src="${authorPhoto}" class="avatar" alt="Avatar">
+                    <div class="author-info">
+                        <p class="author-name">${authorName}</p>
+                        <p class="post-date">${new Date(post.date?.seconds * 1000).toLocaleString("tr-TR")}</p>
+                    </div>
+                </div>
+                <div class="post-content"><p>${post.content || ''}</p></div>
+                <div class="step-section">
+                    <div class="step-title">💡 Eleştir</div>
+                    <div class="step-body">${progress >= 1 ? (post.step1Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
+                    <div class="step-title">🛠 Düşündür</div>
+                    <div class="step-body">${progress >= 2 ? (post.step2Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
+                    <div class="step-title">✅ Geliştir</div>
+                    <div class="step-body">${progress >= 3 ? (post.step3Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
+                </div>
+            </div>
+            <div class="post-actions">
+                <span id="like-${docId}"><i class="fa${isLiked ? 's' : 'r'} fa-thumbs-up"></i> ${post.likesCount || 0}</span>
+                <span onclick="goToPostDetail('${docId}')"><i class="far fa-comment"></i> ${post.commentsCount || 0}</span>
+                <span id="save-${docId}"><i class="fa${isSaved ? 's' : 'r'} fa-bookmark"></i></span>
+                <span id="share-${docId}"><i class="fas fa-share"></i></span>
+                <span><i class="far fa-eye"></i> ${post.views || 0}</span>
+            </div>
         </div>
-        <div class="post-content"><p>${post.content || ''}</p></div>
-        <div class="step-section">
-          <div class="step-title">💡 Eleştir</div>
-          <div class="step-body">${progress >= 1 ? (post.step1Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
-          <div class="step-title">🛠 Düşündür</div>
-          <div class="step-body">${progress >= 2 ? (post.step2Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
-          <div class="step-title">✅ Geliştir</div>
-          <div class="step-body">${progress >= 3 ? (post.step3Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
-        </div>
-      </div>
-
-      <!-- Etkileşim butonları - Şık ve çizgisiz -->
-      <div class="post-actions">
-        <span id="like-${docId}">
-          <i class="fa${isLiked ? 's' : 'r'} fa-thumbs-up"></i> ${post.likesCount || 0}
-        </span>
-        <span onclick="goToPostDetail('${docId}')">
-  <i class="far fa-comment"></i> ${post.commentsCount || 0}
-</span>
-        <span id="save-${docId}">
-          <i class="fa${isSaved ? 's' : 'r'} fa-bookmark"></i>
-        </span>
-        <span id="share-${docId}">
-          <i class="fas fa-share"></i>
-        </span>
-        <span>
-          <i class="far fa-eye"></i> ${post.views || 0}
-        </span>
-      </div>
-    </div>
-  `;
+    `;
 }
-
-
 
 onAuthStateChanged(auth, async (user) => {
-  const params = new URLSearchParams(window.location.search);
-  const profileUid = params.get("uid") || user.uid;
-  if (!profileUid) return;
+    const params = new URLSearchParams(window.location.search);
+    const profileUid = params.get("uid") || user.uid;
+    if (!profileUid) return;
 
-  const userSnap = await getDoc(doc(db, "users", profileUid));
-if (userSnap.exists()) {
-  const data = userSnap.data();
-  document.querySelector(".profile-header img.avatar").src =
-    `assets/avatars/${data.photoUrl?.split("avatars/")[1] || "avatar1.png"}`;
-  document.getElementById("profile-name").textContent = data.username || "Kullanıcı";
-  document.getElementById("profile-username").textContent = `@${data.username || "kullanici"}`;
-  document.getElementById("followers-count").textContent = data.followers || 0;
-  document.getElementById("following-count").textContent = data.following || 0;
-  document.getElementById("usefulness-score").textContent = data.usefulness || "0/10";
+    const userSnap = await getDoc(doc(db, "users", profileUid));
+    if (userSnap.exists()) {
+        const data = userSnap.data();
+        document.querySelector(".profile-header img.avatar").src = data.photoUrl || 'assets/avatars/avatar1.png';
+        document.getElementById("profile-name").textContent = data.username || "Kullanıcı";
+        document.getElementById("profile-username").textContent = `@${data.username || "kullanici"}`;
+        document.getElementById("followers-count").textContent = data.followers || 0;
+        document.getElementById("following-count").textContent = data.following || 0;
+        document.getElementById("usefulness-score").textContent = data.usefulness || "0/10";
 
-  // ✅ Post sayısını hesapla ve göster
-  const postQuery = query(collection(db, "posts"), where("authorId", "==", profileUid));
-  const postSnapshot = await getDocs(postQuery);
-  document.getElementById("posts-count").textContent = postSnapshot.size || 0;
-  const isOwnProfile = user && user.uid === profileUid;
+        const postQuery = query(collection(db, "posts"), where("authorId", "==", profileUid));
+        const postSnapshot = await getDocs(postQuery);
+        document.getElementById("posts-count").textContent = postSnapshot.size || 0;
 
-  // 👇 Kaydedilenler sekmesini gizle (eğer kendi profili değilse)
-  if (isOwnProfile) {
-  const editBtn = document.createElement("button");
-  editBtn.textContent = "Profili Düzenle";
-  editBtn.onclick = () => alert("Düzenleme ekranı yakında");
-  
-  // Şık görünmesi için stil
-  editBtn.style.marginLeft = "auto";
-  editBtn.style.marginTop = "10px";
-  editBtn.style.padding = "8px 16px";
-  editBtn.style.borderRadius = "20px";
-  editBtn.style.border = "none";
-  editBtn.style.backgroundColor = "#ffa726";
-  editBtn.style.color = "white";
-  editBtn.style.fontWeight = "bold";
-  editBtn.style.cursor = "pointer";
+        if (user.uid === profileUid) {
+            const editBtn = document.createElement("button");
+            editBtn.textContent = "Profili Düzenle";
+            editBtn.onclick = () => showProfileEditWidget({ uid: profileUid, username: data.username });
+            editBtn.classList.add("profile-edit-btn");
+            document.querySelector(".profile-header").appendChild(editBtn);
 
-  document.querySelector(".profile-header").appendChild(editBtn);
-}
-if (isOwnProfile) {
-  const logoutBtn = document.createElement("button");
-  logoutBtn.textContent = "Çıkış Yap";
-  logoutBtn.onclick = () => auth.signOut().then(() => window.location.href = "login.html");
+            const logoutBtn = document.createElement("button");
+            logoutBtn.textContent = "Çıkış Yap";
+            logoutBtn.onclick = () => auth.signOut().then(() => window.location.href = "login.html");
+            logoutBtn.classList.add("profile-logout-btn");
+            document.querySelector(".profile-header").appendChild(logoutBtn);
+        }
+    }
 
-  // Stil
-  logoutBtn.style.marginLeft = "10px";
-  logoutBtn.style.marginTop = "10px";
-  logoutBtn.style.padding = "8px 16px";
-  logoutBtn.style.borderRadius = "20px";
-  logoutBtn.style.border = "none";
-  logoutBtn.style.backgroundColor = "#d32f2f";
-  logoutBtn.style.color = "white";
-  logoutBtn.style.fontWeight = "bold";
-  logoutBtn.style.cursor = "pointer";
-
-  document.querySelector(".profile-header").appendChild(logoutBtn);
-}
-
-
-}
-
-      
-      // Firebase'den gelen veriler
-
-
-      const q = query(collection(db, "posts"), where("authorId", "==", profileUid));
-      onSnapshot(q, (snapshot) => {
+    const q = query(collection(db, "posts"), where("authorId", "==", profileUid));
+    onSnapshot(q, async (snapshot) => {
         const devam = document.getElementById("tab-0");
         const tamam = document.getElementById("tab-1");
         const kayit = document.getElementById("tab-2");
+
         devam.innerHTML = tamam.innerHTML = kayit.innerHTML = "";
 
-        
+        for (const docSnap of snapshot.docs) {
+            const post = docSnap.data();
+            const docId = docSnap.id;
+            const html = await generatePostHTML(post, docId, profileUid);
 
-        snapshot.forEach(docSnap => {
-          const post = docSnap.data();
-          const docId = docSnap.id;
-          const html = generatePostHTML(post, docId, profileUid);
+            if (post.progressStep < 3) devam.insertAdjacentHTML("beforeend", html);
+            else tamam.insertAdjacentHTML("beforeend", html);
 
-          if (post.progressStep < 3) devam.insertAdjacentHTML("beforeend", html);
-          else tamam.insertAdjacentHTML("beforeend", html);
-
-          if (post.savedBy?.includes(profileUid)) {
-            kayit.insertAdjacentHTML("beforeend", html);
-          }
-
-          // Butonlara event ekle
-          setTimeout(() => {
-            const likeBtn = document.getElementById(`like-${docId}`);
-            const saveBtn = document.getElementById(`save-${docId}`);
-            const shareBtn = document.getElementById(`share-${docId}`);
-if (shareBtn) {
-  shareBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // Kart detayına tıklanmasını engelle
-
-    const shareUrl = `${window.location.origin}/post.html?id=${docId}`;
-    if (navigator.share) {
-      navigator.share({
-        title: post.content?.substring(0, 50) || "Gönderi",
-        text: "Bu gönderiye göz at!",
-        url: shareUrl,
-      }).catch((err) => console.error("Paylaşım iptal edildi", err));
-    } else {
-      navigator.clipboard.writeText(shareUrl);
-      alert("Bağlantı panoya kopyalandı 📋");
-    }
-  });
-}
-
-
-            if (likeBtn) {
-              likeBtn.addEventListener("click", async () => {
-                const isLiked = post.likedBy?.includes(auth.currentUser?.uid);
-                await toggleLike(docId, profileUid, post.likedBy || []);
-                const icon = likeBtn.querySelector("i");
-                let count = parseInt(likeBtn.textContent.trim().split(" ").pop());
-                icon.classList.replace(isLiked ? "fas" : "far", isLiked ? "far" : "fas");
-                likeBtn.innerHTML = `<i class="fa${isLiked ? "r" : "s"} fa-thumbs-up"></i> ${isLiked ? count - 1 : count + 1}`;
-              });
+            if (post.savedBy?.includes(profileUid)) {
+                kayit.insertAdjacentHTML("beforeend", html);
             }
 
-            if (saveBtn) {
-              saveBtn.addEventListener("click", async () => {
-                const isSaved = post.savedBy?.includes(auth.currentUser?.uid);
-                await toggleSave(docId, profileUid, post.savedBy || []);
-                const icon = saveBtn.querySelector("i");
-                icon.classList.replace(isSaved ? "fas" : "far", isSaved ? "far" : "fas");
-              });
-            }
-          }, 0);
-        });
-      });
+            setTimeout(() => {
+                const likeBtn = document.getElementById(`like-${docId}`);
+                const saveBtn = document.getElementById(`save-${docId}`);
+                const shareBtn = document.getElementById(`share-${docId}`);
+
+                shareBtn?.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    const shareUrl = `${window.location.origin}/post.html?id=${docId}`;
+                    if (navigator.share) {
+                        navigator.share({ title: post.content?.substring(0, 50) || "Gönderi", text: "Bu gönderiye göz at!", url: shareUrl }).catch(console.error);
+                    } else {
+                        navigator.clipboard.writeText(shareUrl);
+                        alert("Bağlantı panoya kopyalandı 📋");
+                    }
+                });
+
+                likeBtn?.addEventListener("click", async () => {
+                    const isLiked = post.likedBy?.includes(auth.currentUser?.uid);
+                    await toggleLike(docId, profileUid, post.likedBy || []);
+                });
+
+                saveBtn?.addEventListener("click", async () => {
+                    const isSaved = post.savedBy?.includes(auth.currentUser?.uid);
+                    await toggleSave(docId, profileUid, post.savedBy || []);
+                });
+            }, 0);
+        }
     });
+});
 
-
-
-
-
-
-
-
-
-
-
-
-    window.showTab = function(index) {
-  const tabs = document.querySelectorAll('.tab-content');
-  const buttons = document.querySelectorAll('.tab-btn');
-
-  tabs.forEach((tab, i) => {
-    tab.classList.toggle('active', i === index);
-  });
-
-  buttons.forEach((btn, i) => {
-    btn.classList.toggle('active', i === index);
-  });
+// 👇 Global fonksiyonlar dışarıda olmalı
+window.showTab = function (index) {
+    document.querySelectorAll('.tab-content').forEach((tab, i) => tab.classList.toggle('active', i === index));
+    document.querySelectorAll('.tab-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
 };
+
 window.goToPostDetail = function (postId) {
-  window.location.href = `post.html?id=${postId}`;
+    window.location.href = `post.html?id=${postId}`;
 };
+</script>
 
-
-  </script>
 
   <!-- Sekme geçişi -->
   <script type="module" src="navbar.js"></script>

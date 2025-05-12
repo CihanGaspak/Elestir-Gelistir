@@ -7,8 +7,8 @@
     <img id="profilePic" src="assets/avatars/avatar1.png" alt="profil" class="profile-img" onclick="toggleDropdown()">
     <div id="dropdown" class="dropdown hidden">
       <a id="profile-link" href="#">👤 Profilim</a>
-      <a href="#">ℹ️ Hakkında</a>
-      <a href="#">📧 Bize Ulaş</a>
+      <a href="/public/about.html">ℹ️ Hakkında</a>
+      <a href="/public/contact.html">📧 Bize Ulaş</a>
       <a href="#" onclick="logout()">🚪 Çıkış Yap</a>
     </div>
   </div>
@@ -18,8 +18,8 @@
   .topbar {
     position: sticky;
     top: 0;
-    background: #ffa726;
-    padding: 12px 20px;
+    background: #FB8C00;
+    padding: 6px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -36,10 +36,11 @@
 
   .search {
     padding: 6px 14px;
-    border-radius: 20px;
+    border-radius: 16px;
     border: none;
     outline: none;
-    width: 200px;
+    width: 400px;
+    height: 30px;
   }
 
   .profile-menu {
@@ -49,8 +50,8 @@
   }
 
   .profile-img {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     object-fit: cover;
     cursor: pointer;

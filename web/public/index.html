@@ -456,10 +456,65 @@
       renderPosts(category);
     };
 
-    function generatePostHTML(post, docId, uid) {
+    // 🔥 timeAgo fonksiyonu global olarak bir kez tanımlanır
+function timeAgo(date) {
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+
+  let interval = Math.floor(seconds / 31536000);
+  if (interval >= 1) return `${interval} yıl önce`;
+
+  interval = Math.floor(seconds / 2592000);
+  if (interval >= 1) return `${interval} ay önce`;
+
+  interval = Math.floor(seconds / 86400);
+  if (interval >= 1) return `${interval} gün önce`;
+
+  interval = Math.floor(seconds / 3600);
+  if (interval >= 1) return `${interval} saat önce`;
+
+  interval = Math.floor(seconds / 60);
+  if (interval >= 1) return `${interval} dakika önce`;
+
+  return "Az önce";
+}
+
+// 🔥 generatePostHTML fonksiyonu sadece işine odaklanır
+function generatePostHTML(post, docId, uid) {
   const isLiked = post.likedBy?.includes(uid);
   const isSaved = post.savedBy?.includes(uid);
   const progress = post.progressStep ?? 0;
+  const postDateObj = new Date(post.date?.seconds * 1000);
+  const postDate = timeAgo(postDateObj);
+
+  const progressIcons = [
+    { icon: "fas fa-lightbulb", label: "Fikir" },
+    { icon: "fas fa-tools", label: "Çözüm" },
+    { icon: "fas fa-check-circle", label: "Sonuç" }
+  ];
+
+  const categoryIcons = {
+    "Eğitim": "fas fa-school",
+    "Spor": "fas fa-basketball-ball",
+    "Teknoloji": "fas fa-microchip",
+    "Tamirat": "fas fa-tools",
+    "Sağlık": "fas fa-heartbeat",
+    "Sanat": "fas fa-palette",
+    "Yazılım": "fas fa-code",
+    "Kişisel Gelişim": "fas fa-user-graduate",
+    "Araç Bakım": "fas fa-car",
+    "Diğer": "fas fa-ellipsis-h"
+  };
+
+  // ✅ İlk ikon her zaman turuncu olacak, diğerleri normal progress kontrolüyle
+  const progressHtml = progressIcons.map((step, index) => `
+    <i class="${step.icon}" title="${step.label}" 
+      style="color:${index === 0 ? 'orange' : (progress >= index + 1 ? 'orange' : '#ccc')}; margin-right:6px;"></i>
+  `).join('');
+
+  const categoryHtml = `
+    <i class="${categoryIcons[post.category] || categoryIcons['Diğer']}" style="color:#666; margin-right:4px;"></i> ${post.category || 'Diğer'}
+  `;
 
   return `
     <div class="post-card">
@@ -468,7 +523,11 @@
           <img src="${post.authorPhotoUrl || 'assets/avatars/avatar1.png'}" class="avatar" alt="Avatar">
           <div class="author-info">
             <p class="author-name">${post.authorName || 'Kullanıcı'}</p>
-            <p class="post-date">${new Date(post.date?.seconds * 1000).toLocaleString("tr-TR")}</p>
+            <p class="post-date">${postDate}</p>
+          </div>
+          <div style="margin-left:auto; text-align:right;">
+            <div>${progressHtml}</div>
+            <div style="font-size:12px; color:#555; margin-top:4px;">${categoryHtml}</div>
           </div>
         </div>
         <div class="post-content"><p>${post.content || ''}</p></div>
@@ -482,14 +541,10 @@
         </div>
       </div>
 
-      <!-- Etkileşim butonları - Şık ve çizgisiz -->
       <div class="post-actions">
         <span id="like-${docId}">
           <i class="fa${isLiked ? 's' : 'r'} fa-thumbs-up"></i> ${post.likesCount || 0}
         </span>
-        <span onclick="goToPostDetail('${docId}')">
-  <i class="far fa-comment"></i> ${post.commentsCount || 0}
-</span>
         <span id="save-${docId}">
           <i class="fa${isSaved ? 's' : 'r'} fa-bookmark"></i>
         </span>
@@ -503,6 +558,11 @@
     </div>
   `;
 }
+
+
+  
+
+
   
     onSnapshot(collection(db, "posts"), snapshot => {
       allPosts = snapshot.docs.map(doc => ({
@@ -597,7 +657,12 @@ async function loadDailyPost() {
       })
       .catch(console.error);
   </script>
-  
+  <div id="footer-placeholder"></div>
+  <script>
+    fetch("footer.html")
+      .then(res => res.text())
+      .then(data => document.getElementById("footer-placeholder").innerHTML = data);
+  </script>
   
 </body>
 </html>

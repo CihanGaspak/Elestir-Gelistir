@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Firebase core import
 import 'package:elestir_gelistir/splash_screen.dart'; // SplashScreen import
+import 'package:intl/date_symbol_data_local.dart';
+
 // Eğer firebase_options.dart dosyan varsa onu da import edeceğiz. (firebase kurulumunda gelmiş olmalı)
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // Firebase burada başlatılıyor
+  await initializeDateFormatting('tr', null);
   runApp(const MyApp());
 }
 

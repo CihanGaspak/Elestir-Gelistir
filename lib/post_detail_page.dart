@@ -405,6 +405,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   IconData _getCategoryIcon(String category) {
     switch (category.toLowerCase()) {
+      case 'tümü':
+        return Icons.all_inclusive;
       case 'eğitim':
         return Icons.school;
       case 'spor':
@@ -413,10 +415,21 @@ class _PostDetailPageState extends State<PostDetailPage> {
         return Icons.build;
       case 'araç bakım':
         return Icons.car_repair;
+      case 'sağlık':
+        return Icons.health_and_safety;
+      case 'teknoloji':
+        return Icons.computer;
+      case 'kişisel gelişim':
+        return Icons.self_improvement;
+      case 'sanat':
+        return Icons.brush;
+      case 'yazılım':
+        return Icons.code;
       default:
         return Icons.category;
     }
   }
+
 }
 
 extension StringExtension on String {

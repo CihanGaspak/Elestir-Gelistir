@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -13,6 +14,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 // Navbar HTML dosyasını yükle
 fetch("navbar.html")
@@ -47,8 +49,8 @@ fetch("navbar.html")
       }
     });
 
-    // Auth kullanıcı yüklendiğinde profil bilgilerini güncelle
-    onAuthStateChanged(auth, (user) => {
+    // 🔥 Auth kullanıcı yüklendiğinde Firestore'dan kullanıcı bilgilerini çekip navbar'da göster
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
         const profileLink = document.getElementById("profile-link");
         const profilePic = document.getElementById("profilePic");
@@ -57,8 +59,25 @@ fetch("navbar.html")
           profileLink.href = `profile.html?uid=${user.uid}`;
         }
 
-        if (profilePic && user.photoURL) {
-          profilePic.src = user.photoURL;
+        // Firestore'dan kullanıcı bilgisi çek
+        try {
+          const userSnap = await getDoc(doc(db, "users", user.uid));
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            if (profilePic) {
+              profilePic.src = userData.photoUrl || 'assets/avatars/avatar1.png';
+            }
+          } else {
+            console.warn("Kullanıcı Firestore'da bulunamadı.");
+            if (profilePic) {
+              profilePic.src = 'assets/avatars/avatar1.png';
+            }
+          }
+        } catch (err) {
+          console.error("Kullanıcı verisi çekilirken hata:", err);
+          if (profilePic) {
+            profilePic.src = 'assets/avatars/avatar1.png';
+          }
         }
       }
     });

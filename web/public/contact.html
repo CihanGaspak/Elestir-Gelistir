@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bize Ulaş | Eleştir-Geliştir</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #fafafa;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 60px auto;
+      padding: 0 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #ff9800;
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .desc {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    input, textarea {
+      resize: none;
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 15px;
+      transition: border-color 0.3s ease;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #ff9800;
+      outline: none;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      background-color: #ff9800;
+      color: white;
+      border: none;
+      border-radius: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #fb8c00;
+    }
+
+    .logo-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 30px;
+      margin-bottom: -10px;
+      animation: fadeIn 1.2s ease-out;
+    }
+
+    .logo-wrapper img:first-child {
+      max-width: 120px;
+      margin: 6px 0;
+    }
+
+    .logo-wrapper img:last-child {
+      max-width: 300px;
+      margin: 6px 0;
+    }
+
+    .contact-info {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 40px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+      text-align: center;
+      font-size: 15px;
+      color: #444;
+    }
+
+    .contact-info p {
+      margin: 6px 0;
+    }
+
+    .social-icons {
+      margin-top: 12px;
+    }
+
+    .social-icons a {
+      margin: 0 10px;
+      color: #555;
+      font-size: 20px;
+      transition: color 0.3s ease;
+    }
+
+    .social-icons a:hover {
+      color: #ff9800;
+    }
+
+    .faq {
+      margin-top: 50px;
+    }
+
+    .faq h2 {
+      color: #ff9800;
+      font-size: 22px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .faq-item {
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+
+    .faq-item:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .faq-item h3 {
+      margin: 0;
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .faq-item p {
+      margin-top: 10px;
+      display: none;
+      color: #555;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .faq-item.active p {
+      display: block;
+    }
+
+    .faq-item .toggle-icon {
+      transition: transform 0.3s ease;
+      color: #aaa;
+    }
+
+    .faq-item.active .toggle-icon {
+      transform: rotate(180deg);
+      color: #ff9800;
+    }
+
+    #char-count {
+  font-size: 13px;
+  color: #888;
+  margin-top: 4px;
+  text-align: right;
+}
+
+
+    footer {
+      margin-top: 50px;
+      text-align: center;
+      color: #999;
+      font-size: 13px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 16px; }
+      h1 { font-size: 26px; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+
+  <div class="container">
+
+    <div class="logo-wrapper">
+      <img src="assets/logo-footer.png" alt="Üst Logo">
+      <img src="images/logo2.png" alt="Alt Logo">
+    </div>
+
+    <h1>📧 Bize Ulaş</h1>
+    <p class="desc">Görüş, öneri veya hata bildirimi için bizimle iletişime geçebilirsiniz.</p>
+
+    <form onsubmit="alert('Teşekkürler! Mesajınız başarıyla iletildi.'); return false;">
+      <input type="text" placeholder="Adınız Soyadınız" required />
+      <input type="email" placeholder="E-posta Adresiniz" required />
+      <textarea id="message" rows="5" placeholder="Mesajınız..." required maxlength="500"></textarea>
+      <div id="char-count">500 karakter kaldı</div>
+      <button type="submit">Gönder</button>
+    </form>
+
+    <div class="contact-info">
+      <p><i class="fas fa-envelope"></i> destek@elestirgelistir.com</p>
+      <p><i class="fas fa-map-marker-alt"></i> Elazığ, Türkiye</p>
+      <div class="social-icons">
+      </div>
+    </div>
+
+    <div class="faq">
+      <h2>❓ Sık Sorulan Sorular</h2>
+
+      <div class="faq-item">
+        <h3>Eleştir-Geliştir nedir? <i class="fas fa-chevron-down toggle-icon"></i></h3>
+        <p>Eleştir-Geliştir, fikir alışverişi ve yardımlaşmayı temel alan bir sosyal platformdur. Gönderiler paylaşılır, diğer kullanıcılar katkı sağlar.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Hesap oluşturmak zorunlu mu? <i class="fas fa-chevron-down toggle-icon"></i></h3>
+        <p>Platformdaki tüm özelliklerden faydalanabilmek için bir hesap oluşturmanız gerekir.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Gönderiler kimler tarafından görülebilir? <i class="fas fa-chevron-down toggle-icon"></i></h3>
+        <p>Varsayılan olarak tüm kullanıcılar gönderileri görebilir. İleride yalnızca takipçilerle paylaşım opsiyonu da sunulabilir.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Geri bildirimleri nasıl değerlendiriyorsunuz? <i class="fas fa-chevron-down toggle-icon"></i></h3>
+        <p>Her geri bildirim ekibimiz tarafından incelenir ve önceliklendirilerek geliştirme planlarına dahil edilir.</p>
+      </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+  </div>
+
+  <!-- Navbar ve Footer -->
+  <script type="module" src="navbar.js"></script>
+  <script>
+    fetch("footer.html")
+      .then(res => res.text())
+      .then(data => document.getElementById("footer-placeholder").innerHTML = data);
+  </script>
+
+  <!-- Açılır-Kapanır SSS -->
+  <script>
+    document.querySelectorAll(".faq-item").forEach(item => {
+      item.querySelector("h3").addEventListener("click", () => {
+        item.classList.toggle("active");
+      });
+    });
+  </script>
+  <script>
+  const textarea = document.getElementById("message");
+  const charCount = document.getElementById("char-count");
+
+  textarea.addEventListener("input", () => {
+    const remaining = 500 - textarea.value.length;
+    charCount.textContent = `${remaining} karakter kaldı`;
+  });
+</script>
+
+
+</body>
+</html>

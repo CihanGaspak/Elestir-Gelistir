@@ -24,20 +24,22 @@ class _PostCardState extends State<PostCard> {
 
   @override
   Widget build(BuildContext context) {
-    final postId = widget.post['id'];
+    final postId = widget.post['id'] ?? '';
+    if (postId == '') return const SizedBox(); // 👈 Güvenli çıkış
+
     final postRef = FirebaseFirestore.instance.collection('posts').doc(postId);
 
     return StreamBuilder<DocumentSnapshot>(
       stream: postRef.snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const SizedBox();
+        if (!snapshot.hasData || snapshot.data?.data() == null) return const SizedBox(); // 👈 Ekstra güvenlik
 
         final data = snapshot.data!.data() as Map<String, dynamic>;
 
         final likeCount = data['likesCount'] ?? 0;
         final commentCount = data['commentsCount'] ?? 0;
         final likedBy = List<String>.from(data['likedBy'] ?? []);
-        final savedBy = List<String>.from(data['savedBy'] ?? []); // ✅ Doğru yer
+        final savedBy = List<String>.from(data['savedBy'] ?? []);
         final isLiked = currentUserId != null && likedBy.contains(currentUserId);
         final isSaved = currentUserId != null && savedBy.contains(currentUserId);
 
@@ -83,11 +85,10 @@ class _PostCardState extends State<PostCard> {
                     children: [
                       _buildLikeButton(postRef, likeCount, likedBy, isLiked),
                       _buildCommentButton(commentCount),
-                      _buildShareButton(content),          // ← artık sadece ikon
-                      _buildSaveButton(postRef, isSaved),  // ← artık sadece ikon
+                      _buildShareButton(content),
+                      _buildSaveButton(postRef, isSaved),
                     ],
                   ),
-
                   ExpansionPanelList(
                     elevation: 0,
                     expandedHeaderPadding: EdgeInsets.zero,
@@ -98,26 +99,22 @@ class _PostCardState extends State<PostCard> {
                     },
                     children: List.generate(3, (i) {
                       final bool isReached = step >= i;
-                      final noteField = 'step${i + 1}Note';
-
                       return ExpansionPanel(
                         backgroundColor: Colors.white,
                         isExpanded: _expandedSteps[i],
                         canTapOnHeader: true,
                         headerBuilder: (context, isOpen) {
-                          final reached     = step >= i;
                           const stageTitles = ['Eleştir', 'Düşündür', 'Geliştir'];
-
                           return ListTile(
                             leading: Icon(
                               [Icons.lightbulb, Icons.build, Icons.check_circle][i],
-                              color: reached ? Colors.orange : Colors.grey.shade300,
+                              color: isReached ? Colors.orange : Colors.grey.shade300,
                             ),
                             title: Text(
-                              reached ? stageTitles[i] : 'Henüz bu aşamaya geçilmedi',
+                              isReached ? stageTitles[i] : 'Henüz bu aşamaya geçilmedi',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: reached ? Colors.black : Colors.grey,
+                                color: isReached ? Colors.black : Colors.grey,
                               ),
                             ),
                           );
@@ -126,13 +123,15 @@ class _PostCardState extends State<PostCard> {
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                           child: () {
                             final reached = step >= i;
-                            final note    = stepNotes[i].toString().trim();
+                            final note = stepNotes[i].toString().trim();
 
                             if (!reached) {
-                              return const Text('Henüz bu aşamaya geçilmedi.', style: TextStyle(color: Colors.grey));
+                              return const Text('Henüz bu aşamaya geçilmedi.',
+                                  style: TextStyle(color: Colors.grey));
                             }
                             if (note.isEmpty) {
-                              return const Text('Henüz not girilmemiş.', style: TextStyle(color: Colors.grey));
+                              return const Text('Henüz not girilmemiş.',
+                                  style: TextStyle(color: Colors.grey));
                             }
                             return Text(note, style: const TextStyle(fontSize: 14));
                           }(),
@@ -169,7 +168,7 @@ class _PostCardState extends State<PostCard> {
       future: FirebaseFirestore.instance.collection('users').doc(authorId).get(),
       builder: (context, snapshot) {
         String photoUrl = '';
-        if (snapshot.hasData) {
+        if (snapshot.hasData && snapshot.data!.data() != null) {
           final data = snapshot.data!.data() as Map<String, dynamic>;
           photoUrl = data['photoUrl'] ?? '';
         }
@@ -180,16 +179,15 @@ class _PostCardState extends State<PostCard> {
             CircleAvatar(
               radius: 22,
               backgroundColor: Colors.orange.shade100,
-              backgroundImage: photoUrl.startsWith('assets/')
+              backgroundImage: photoUrl.isNotEmpty
+                  ? (photoUrl.startsWith('assets/')
                   ? AssetImage(photoUrl)
-                  : NetworkImage(photoUrl) as ImageProvider,
+                  : NetworkImage(photoUrl)) as ImageProvider
+                  : null,
               child: photoUrl.isEmpty
                   ? Text(
                 author.substring(0, 1).toUpperCase(),
-                style: const TextStyle(
-                  color: Colors.orange,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
               )
                   : null,
             ),
@@ -198,10 +196,8 @@ class _PostCardState extends State<PostCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(author,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text(dateStr,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                  Text(author, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(dateStr, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                 ],
               ),
             ),

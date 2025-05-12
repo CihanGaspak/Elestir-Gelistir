@@ -45,7 +45,6 @@ document.getElementById("login-form").addEventListener("submit", function (e) {
 
   signInWithEmailAndPassword(auth, email, password)
     .then(() => {
-      alert("Giriş başarılı!");
       window.location.href = "index.html";
     })
     .catch((error) => {
