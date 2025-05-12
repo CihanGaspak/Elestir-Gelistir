@@ -6,7 +6,6 @@ import 'CommentSheet.dart';
 import 'post_detail_page.dart';
 import 'package:intl/intl.dart';
 
-
 class PostCard extends StatefulWidget {
   final Map<String, dynamic> post;
 
@@ -22,17 +21,30 @@ class _PostCardState extends State<PostCard> {
   List<bool> _expandedSteps = [false, false, false];
   String _compact(int n) => NumberFormat.compact(locale: 'tr_TR').format(n);
 
+  String timeAgo(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inSeconds < 60) return '${difference.inSeconds} saniye önce';
+    if (difference.inMinutes < 60) return '${difference.inMinutes} dakika önce';
+    if (difference.inHours < 24) return '${difference.inHours} saat önce';
+    if (difference.inDays < 7) return '${difference.inDays} gün önce';
+    if (difference.inDays < 30) return '${(difference.inDays / 7).floor()} hafta önce';
+    if (difference.inDays < 365) return '${(difference.inDays / 30).floor()} ay önce';
+    return '${(difference.inDays / 365).floor()} yıl önce';
+  }
+
   @override
   Widget build(BuildContext context) {
     final postId = widget.post['id'] ?? '';
-    if (postId == '') return const SizedBox(); // 👈 Güvenli çıkış
+    if (postId == '') return const SizedBox();
 
     final postRef = FirebaseFirestore.instance.collection('posts').doc(postId);
 
     return StreamBuilder<DocumentSnapshot>(
       stream: postRef.snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data?.data() == null) return const SizedBox(); // 👈 Ekstra güvenlik
+        if (!snapshot.hasData || snapshot.data?.data() == null) return const SizedBox();
 
         final data = snapshot.data!.data() as Map<String, dynamic>;
 
@@ -45,10 +57,7 @@ class _PostCardState extends State<PostCard> {
 
         final content = data['content'] ?? '';
         final author = data['authorName'] ?? 'Kullanıcı';
-        final timestamp = data['date'];
-        final dateStr = timestamp != null
-            ? (timestamp as Timestamp).toDate().toLocal().toString().split('.')[0]
-            : '';
+        final timestamp = data['date'] as Timestamp?;
         final step = data['progressStep'] ?? 0;
 
         final List<String> stepNotes = [
@@ -76,7 +85,7 @@ class _PostCardState extends State<PostCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(author, dateStr, step),
+                  _buildHeader(author, timestamp, step),
                   const SizedBox(height: 12),
                   Text(content, style: const TextStyle(fontSize: 16, height: 1.4)),
                   const SizedBox(height: 12),
@@ -148,20 +157,7 @@ class _PostCardState extends State<PostCard> {
     );
   }
 
-  IconData _getStepIcon(int index) {
-    switch (index) {
-      case 0:
-        return Icons.lightbulb_outline;
-      case 1:
-        return Icons.build_circle_outlined;
-      case 2:
-        return Icons.check_circle_outline;
-      default:
-        return Icons.help_outline;
-    }
-  }
-
-  Widget _buildHeader(String author, String dateStr, int step) {
+  Widget _buildHeader(String author, Timestamp? timestamp, int step) {
     final authorId = widget.post['authorId'] ?? '';
 
     return FutureBuilder<DocumentSnapshot>(
@@ -197,7 +193,10 @@ class _PostCardState extends State<PostCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(author, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text(dateStr, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                  Text(
+                    timestamp != null ? timeAgo(timestamp.toDate()) : '',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
                 ],
               ),
             ),
@@ -219,7 +218,19 @@ class _PostCardState extends State<PostCard> {
     );
   }
 
-// ───── PAYLAŞ (sayı yok) ──────────────────────────────────────────────
+  IconData _getStepIcon(int index) {
+    switch (index) {
+      case 0:
+        return Icons.lightbulb_outline;
+      case 1:
+        return Icons.build_circle_outlined;
+      case 2:
+        return Icons.check_circle_outline;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
   Widget _buildShareButton(String content) {
     return GestureDetector(
       onTap: () => Share.share(content),
@@ -230,16 +241,12 @@ class _PostCardState extends State<PostCard> {
           const SizedBox(height: 4),
           Text(" "),
         ],
-    ),);
+      ),
+    );
   }
 
-  // ——— BEĞEN —
   Widget _buildLikeButton(
-      DocumentReference postRef,
-      int likeCount,
-      List<String> likedBy,
-      bool isLiked,
-      ) {
+      DocumentReference postRef, int likeCount, List<String> likedBy, bool isLiked) {
     return GestureDetector(
       onTap: () async {
         if (currentUserId == null) return;
@@ -269,7 +276,6 @@ class _PostCardState extends State<PostCard> {
     );
   }
 
-// ───── YORUM ───────────────────────────────────────────────────────────
   Widget _buildCommentButton(int commentCount) {
     return GestureDetector(
       onTap: () => showModalBottomSheet(
@@ -292,11 +298,7 @@ class _PostCardState extends State<PostCard> {
     );
   }
 
-// ───── KAYDET (sayı yok) ──────────────────────────────────────────────
-  Widget _buildSaveButton(
-      DocumentReference postRef,
-      bool isSaved,
-      ) {
+  Widget _buildSaveButton(DocumentReference postRef, bool isSaved) {
     return GestureDetector(
       onTap: () async {
         if (currentUserId == null) return;

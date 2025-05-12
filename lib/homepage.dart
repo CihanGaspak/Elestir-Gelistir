@@ -4,6 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:elestir_gelistir/PostCard.dart';
 import 'package:elestir_gelistir/PostWriteCard.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -74,9 +77,8 @@ class _HomePageState extends State<HomePage> {
   Future<void> _fetchNextPage() async {
     if (_lastDoc == null || _loading) return;
 
-    /* 1️⃣  ÖNCE: mevcut konumu ve listenin boyunu kaydet */
     final double beforeOffset = _scrollCtl.offset;
-    final double beforeMax    = _scrollCtl.position.maxScrollExtent;
+    final double beforeMax = _scrollCtl.position.maxScrollExtent;
 
     setState(() => _loading = true);
 
@@ -87,7 +89,6 @@ class _HomePageState extends State<HomePage> {
 
     if (!mounted) return;
 
-    /* 2️⃣  VERİLERİ EKLE */
     setState(() {
       _posts.addAll(snap.docs);
       if (snap.docs.isNotEmpty) _lastDoc = snap.docs.last;
@@ -95,12 +96,14 @@ class _HomePageState extends State<HomePage> {
       _loading = false;
     });
 
-    /* 3️⃣  FRAME BİTTİKTEN HEMEN SONRA kaydırma konumunu geri ayarla */
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final double newMax = _scrollCtl.position.maxScrollExtent;
-      final double delta  = newMax - beforeMax;
-      // Listeye eleman eklenmişse delta > 0 olur
-      if (delta > 0) {
+      final double delta = newMax - beforeMax;
+
+      final bool userStillScrollingDown =
+          _scrollCtl.position.userScrollDirection == ScrollDirection.reverse;
+
+      if (delta > 0 && userStillScrollingDown) {
         _scrollCtl.jumpTo(beforeOffset + delta);
       }
     });
@@ -180,6 +183,7 @@ class _HomePageState extends State<HomePage> {
       onPressed: () => showModalBottomSheet(
         isScrollControlled: true,
         context: context,
+        backgroundColor: Colors.white,
         builder: (_) => Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,

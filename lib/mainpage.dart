@@ -1,3 +1,4 @@
+import 'package:elestir_gelistir/elestir-AI/ai_page.dart';
 import 'package:elestir_gelistir/homepage.dart';
 import 'package:elestir_gelistir/profilpage.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> _pages = const [
     HomePage(),
     ActivitiesPage(),
+    AiPage(),
     NotificationsPage(),
     ProfilePage(),
   ];
@@ -46,6 +48,13 @@ class _MainPageState extends State<MainPage> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Ana Sayfa'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Keşfet'),
+
+          // 🌟 Ortadaki buton - sade AI stili
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bubble_chart),   // 👈 Değiştirdik
+            label: 'elestir-AI',
+          ),
+
           BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Bildirimler'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
         ],

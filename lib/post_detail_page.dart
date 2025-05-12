@@ -18,6 +18,7 @@ class PostDetailPage extends StatefulWidget {
 class _PostDetailPageState extends State<PostDetailPage> {
   late DocumentReference postRef;
   final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+  final Color primaryColor = Colors.orange.shade600;
 
   int views = 0;
   int likeCount = 0;
@@ -84,6 +85,20 @@ class _PostDetailPageState extends State<PostDetailPage> {
     _loadComments();
   }
 
+  String timeAgo(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inSeconds < 60) return '${difference.inSeconds} saniye önce';
+    if (difference.inMinutes < 60) return '${difference.inMinutes} dakika önce';
+    if (difference.inHours < 24) return '${difference.inHours} saat önce';
+    if (difference.inDays < 7) return '${difference.inDays} gün önce';
+    if (difference.inDays < 30) return '${(difference.inDays / 7).floor()} hafta önce';
+    if (difference.inDays < 365) return '${(difference.inDays / 30).floor()} ay önce';
+    return '${(difference.inDays / 365).floor()} yıl önce';
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final post = widget.post;
@@ -94,6 +109,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
     final category = post['category']?.toString().capitalize() ?? '';
     final photoUrl = post['authorPhotoUrl'] ?? '';
     final step = post['progressStep'] ?? 0;
+    final timestamp = post['date'] as Timestamp?;
+
+
 
     final isLiked = currentUserId != null && likedBy.contains(currentUserId);
     final isSaved = currentUserId != null && savedBy.contains(currentUserId);
@@ -111,6 +129,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   CircleAvatar(
                     radius: 22,
@@ -119,11 +138,59 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         : NetworkImage(photoUrl) as ImageProvider,
                   ),
                   const SizedBox(width: 10),
-                  Text(author, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  const Spacer(),
-                  Icon(_getCategoryIcon(category), color: Colors.orange),
-                  const SizedBox(width: 4),
-                  Text(category, style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(author, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        if (timestamp != null)
+                          Text(
+                            timeAgo(timestamp.toDate()),
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      children: [
+                        // Aşama ikonları
+                        Row(
+                          children: List.generate(3, (i) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 2),
+                              child: Icon(
+                                _getStepIcon(i),
+                                size: 20,
+                                color: i <= step ? Colors.orange : Colors.grey.shade300,
+                              ),
+                            );
+                          }),
+                        ),
+                        const SizedBox(height: 8),
+                        // Kategori
+                        Row(
+                          children: [
+                            Icon(_getCategoryIcon(category), color: Colors.black, size: 20),
+                            const SizedBox(width: 4),
+                            Text(
+                              category,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
+                  ,
                 ],
               ),
               const SizedBox(height: 12),
@@ -310,9 +377,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   final likedBy = List<String>.from(c['likedBy'] ?? []);
                   final isLiked = currentUserId != null && likedBy.contains(currentUserId);
                   final timestamp = c['date'] as Timestamp?;
-                  final dateStr = timestamp != null
-                      ? DateFormat('dd.MM.yyyy HH:mm').format(timestamp.toDate())
-                      : '';
+                  final dateStr = timestamp != null ? timeAgo(timestamp.toDate()) : '';
 
                   return FutureBuilder<DocumentSnapshot>(
                     future: FirebaseFirestore.instance.collection('users').doc(authorId).get(),
@@ -323,62 +388,69 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         photoUrl = userData['photoUrl'] ?? photoUrl;
                       }
 
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundImage: photoUrl.startsWith('assets/')
-                                ? AssetImage(photoUrl) as ImageProvider
-                                : NetworkImage(photoUrl),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
                               children: [
-                                RichText(
-                                  text: TextSpan(
-                                    style: const TextStyle(color: Colors.black, fontSize: 14),
+                                CircleAvatar(
+                                  radius: 18,
+                                  backgroundImage: photoUrl.startsWith('assets/')
+                                      ? AssetImage(photoUrl) as ImageProvider
+                                      : NetworkImage(photoUrl),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      TextSpan(
-                                        text: (c['authorName'] ?? 'Kullanıcı') + ' ',
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                      Text(
+                                        c['authorName'] ?? 'Kullanıcı',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      TextSpan(
-                                        text: c['text'] ?? '',
+                                      Text(
+                                        dateStr,
+                                        style: const TextStyle(fontSize: 11, color: Colors.grey),
                                       ),
                                     ],
                                   ),
                                 ),
-                                const SizedBox(height: 6),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      dateStr,
-                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () => _toggleCommentLike(c['id'], likedBy),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            isLiked ? Icons.favorite : Icons.favorite_border,
-                                            color: isLiked ? Colors.red : Colors.grey,
-                                            size: 18,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text('${likedBy.length}'),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               ],
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Text(
+                              c['text'] ?? '',
+                              style: const TextStyle(fontSize: 14, color: Colors.black87),
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: GestureDetector(
+                                onTap: () => _toggleCommentLike(c['id'], likedBy),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      isLiked ? Icons.favorite : Icons.favorite_border,
+                                      color: isLiked ? Colors.red : Colors.grey,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text('${likedBy.length}', style: const TextStyle(fontSize: 12)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       );
                     },
                   );
@@ -427,6 +499,18 @@ class _PostDetailPageState extends State<PostDetailPage> {
         return Icons.code;
       default:
         return Icons.category;
+    }
+  }
+  IconData _getStepIcon(int index) {
+    switch (index) {
+      case 0:
+        return Icons.lightbulb_outline;
+      case 1:
+        return Icons.build_circle_outlined;
+      case 2:
+        return Icons.check_circle_outline;
+      default:
+        return Icons.help_outline;
     }
   }
 
