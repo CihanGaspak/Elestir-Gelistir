@@ -66,12 +66,13 @@ document.getElementById("register-form").addEventListener("submit", function (e)
         uid: user.uid,
         username: username,
         email: email,
-        photoUrl: "assets/avatars/avatar1.png", // varsayılan avatar
-        joinedAt: serverTimestamp()
-      }).then(() => {
-        alert("Kayıt başarılı!");
-        window.location.href = "login.html";
+        photoUrl: "assets/avatars/avatar1.png",
+        joinedAt: serverTimestamp(),
+        usefulness: 0.0,
       });
+    })
+    .then(() => {
+      window.location.href = "index.html"; // ✅ Direkt giriş sonrası index.html'e yönlendirme
     })
     .catch((error) => {
       alert("Kayıt hatası: " + error.message);

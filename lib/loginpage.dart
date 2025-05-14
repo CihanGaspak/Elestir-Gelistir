@@ -12,18 +12,19 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool showLogin = true;
-  bool isBusy   = false;
+  bool isBusy = false;
 
-  final loginEmail    = TextEditingController();
+  final loginEmail = TextEditingController();
   final loginPassword = TextEditingController();
-  final regEmail      = TextEditingController();
-  final regPassword   = TextEditingController();
-  final regUsername   = TextEditingController();
+  final regEmail = TextEditingController();
+  final regPassword = TextEditingController();
+  final regUsername = TextEditingController();
 
   //──────────────────────────────────────── login
   Future<void> signIn() async {
     if (loginEmail.text.isEmpty || loginPassword.text.isEmpty) {
-      _alert('E-posta ve şifre giriniz'); return;
+      _alert('E-posta ve şifre giriniz');
+      return;
     }
     setState(() => isBusy = true);
     try {
@@ -64,6 +65,8 @@ class _LoginPageState extends State<LoginPage> {
         'email'    : cred.user!.email,
         'username' : regUsername.text.trim(),
         'photoUrl' : 'assets/avatars/avatar1.png',
+        'joinedAt' : Timestamp.now(),
+        'usefulness': 0.0, // İlk kayıt 0.0 olabilir, istersen 5.0 default koyabilirsin.
       });
 
       _alert('Kayıt başarılı! Giriş yapabilirsiniz.', ok: true);
@@ -74,6 +77,7 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) setState(() => isBusy = false);
     }
   }
+
 
   //──────────────────────────────────────── helpers
   void _alert(String msg, {bool ok = false}) => showDialog(
@@ -93,71 +97,101 @@ class _LoginPageState extends State<LoginPage> {
   bool _validEmail(String e) =>
       RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(e);
 
-
+  //──────────────────────────────────────── UI
   @override
   Widget build(BuildContext context) => Scaffold(
-    body: Center(
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 600), // yeni form için yavaş giriş
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
-          return Stack(
-            alignment: Alignment.center,
-            children: <Widget>[
-              ...previousChildren, // eski çocuk (arka planda) hemen silinecek
-              if (currentChild != null) currentChild,
+    backgroundColor: Colors.white,
+    body: SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo & Başlık
+              Column(
+                children: [
+                  Image.asset('assets/default_icon.png',
+                      width: 120, height: 120),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Eleştir - Geliştir',
+                    style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87),
+                  ),
+                  Text(
+                    showLogin ? 'Giriş Yap' : 'Kayıt Ol',
+                    style:
+                    TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 40),
+              // Form Card
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.orange.shade100, blurRadius: 8)
+                  ],
+                ),
+                child: isBusy
+                    ? const Center(child: CircularProgressIndicator())
+                    : showLogin
+                    ? _loginForm()
+                    : _registerForm(),
+              ),
+              const SizedBox(height: 24),
+              // Alt Kutu
+              _footerBox(),
+
+              const SizedBox(height: 32),
+
+              // Alt Logo ve AIM DEV.
+              Column(
+                children: [
+                  Image.asset('assets/logo-footer.png',
+                      width: 100, height: 100),
+                  Text(
+                    'v1.0.0',
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  ),
+                ],
+              ),
             ],
-          );
-        },
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          final isCurrent = child.key == ValueKey(showLogin ? 'login' : 'register');
-
-          // Gelen form yavaş yavaş aşağıdan gelir
-          final slideAnimation = Tween<Offset>(
-            begin: const Offset(0.0, 0.2),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          ));
-
-          // Giden form aniden kaybolur, gelen yavaşça görünür
-          final fadeAnimation = isCurrent
-              ? animation // gelen görünür olacak
-              : Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(
-            parent: animation,
-            curve: const Interval(0.0, 0.1, curve: Curves.easeOut),
-          ));
-
-          return isCurrent
-              ? SlideTransition(
-            position: slideAnimation,
-            child: FadeTransition(opacity: fadeAnimation, child: child),
-          )
-              : const SizedBox(); // eski formu tamamen kaldır
-        },
-
-        child: isBusy
-            ? const CircularProgressIndicator()
-            : showLogin
-            ? _loginForm()
-            : _registerForm(),
+          ),
+        ),
       ),
     ),
   );
 
-  //──────────────────────────────────────── Login UI
-  Widget _loginForm() => _wrapper(
-    key: const ValueKey('login'),
-    title: 'Giriş Yap',
-    upperBox: _upperBox(
-      question: 'Hesabın yok mu?',
-      button: 'Kayıt Ol',
-      onTap: () => setState(() => showLogin = false),
-    ),
+
+  Widget _footerBox() => Column(
     children: [
-      _input(loginEmail, 'E-Posta', Icons.email),
+      Text(
+        showLogin ? 'Hesabın yok mu?' : 'Zaten hesabın var mı?',
+        style: const TextStyle(color: Colors.black87),
+      ),
+      const SizedBox(height: 8),
+      TextButton(
+        onPressed: () => setState(() => showLogin = !showLogin),
+        style: TextButton.styleFrom(
+            foregroundColor: Colors.orange.shade600,
+            textStyle: const TextStyle(fontWeight: FontWeight.bold)),
+        child: Text(showLogin ? 'Kayıt Ol' : 'Giriş Yap'),
+      ),
+    ],
+  );
+
+  Widget _loginForm() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _input(loginEmail, 'E-posta', Icons.email),
       _space,
       _input(loginPassword, 'Şifre', Icons.lock, obsecure: true),
       _space,
@@ -165,80 +199,19 @@ class _LoginPageState extends State<LoginPage> {
     ],
   );
 
-  //──────────────────────────────────────── Register UI
-  Widget _registerForm() => _wrapper(
-    key: const ValueKey('register'),
-    title: 'Kayıt Ol',
-    upperBox: _upperBox(
-      question: 'Hesabın var mı?',
-      button: 'Giriş Yap',
-      onTap: () => setState(() => showLogin = true),
-    ),
+  Widget _registerForm() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       _input(regUsername, 'Kullanıcı Adı', Icons.person),
       _space,
-      _input(regEmail, 'E-Posta', Icons.email),
+      _input(regEmail, 'E-posta', Icons.email),
       _space,
-      _input(regPassword, 'Şifre (min 6)', Icons.lock, obsecure: true),
+      _input(regPassword, 'Şifre (min 6 karakter)', Icons.lock,
+          obsecure: true),
       _space,
       _mainBtn('Kayıt Ol', register),
     ],
   );
-
-  //──────────────────────────────────────── UI helpers
-  Widget _wrapper(
-      {required Key key,
-        required String title,
-        required Widget upperBox,
-        required List<Widget> children}) =>
-      Container(
-        key: key,
-        width: 350,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(24)),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              upperBox,
-              const SizedBox(height: 30),
-              Text(title,
-                  style:
-                  const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              ...children,
-            ],
-          ),
-        ),
-      );
-
-  Widget _upperBox(
-      {required String question,
-        required String button,
-        required VoidCallback onTap}) =>
-      Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        decoration: BoxDecoration(
-            color: Colors.orange.shade600,
-            borderRadius: BorderRadius.circular(20)),
-        child: Column(
-          children: [
-            Text(question,
-                style: const TextStyle(color: Colors.white, fontSize: 16)),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: onTap,
-              style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white)),
-              child: Text(button,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white)),
-            )
-          ],
-        ),
-      );
 
   Widget _input(TextEditingController c, String hint, IconData icon,
       {bool obsecure = false}) =>
@@ -246,23 +219,37 @@ class _LoginPageState extends State<LoginPage> {
         controller: c,
         obscureText: obsecure,
         decoration: InputDecoration(
-            hintText: hint,
-            suffixIcon: Icon(icon),
-            border: const OutlineInputBorder()),
+          prefixIcon: Icon(icon, color: Colors.orange.shade600),
+          hintText: hint,
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: Colors.orange.shade200),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: Colors.orange.shade600, width: 2),
+          ),
+        ),
       );
 
-  Widget _mainBtn(String txt, VoidCallback fn) => ElevatedButton(
+  Widget _mainBtn(String txt, VoidCallback fn) => ElevatedButton.icon(
     onPressed: fn,
     style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.orange.shade600,
-        minimumSize: const Size.fromHeight(48),
-        shape:
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-    child: Text(txt,
-        style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold)),
+      backgroundColor: Colors.orange.shade600,
+      minimumSize: const Size.fromHeight(50),
+      shape:
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    ),
+    icon: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
+    label: Text(
+      txt,
+      style: const TextStyle(
+          color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+    ),
   );
 
   Widget get _space => const SizedBox(height: 10);

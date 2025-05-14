@@ -48,11 +48,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const category = document.getElementById("post-category")?.value || "gundelik";
     if (!text) return alert("Lütfen bir içerik girin!");
 
+    const user = auth.currentUser;
+    if (!user) return alert("Gönderi paylaşmak için giriş yapmalısınız!");
+
     try {
       await addDoc(collection(db, "posts"), {
         title: text,
-        author: "Cihan Gaspak",
+        authorName: user.userName || "Anonim",
+        authorUid: user.uid,
+        authorPhotoUrl: user.photoURL || "assets/avatars/avatar0.png",
         category,
+        dailyPick: false,
         tags: ["etiket"],
         image: "",
         date: serverTimestamp(),

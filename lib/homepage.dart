@@ -204,6 +204,7 @@ class _HomePageState extends State<HomePage> {
                 'authorName': snap['username'] ?? user.email,
                 'authorPhotoUrl': snap['photoUrl'] ?? '',
                 'content': text,
+                'dailyPick': false,
                 'category': category,
                 'likesCount': 0,
                 'likedBy': [],

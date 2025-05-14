@@ -1,7 +1,8 @@
 <header class="topbar">
   <div class="logo" onclick="window.location.href='index.html'" style="cursor:pointer;">
-    Eleştir-Geliştir
-  </div>  
+  <img src="images/logo.png">
+</div>
+
   <input type="text" class="search" placeholder="Ara...">
   <div class="profile-menu">
     <img id="profilePic" src="assets/avatars/avatar1.png" alt="profil" class="profile-img" onclick="toggleDropdown()">
@@ -27,12 +28,11 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
 
-  .logo {
-    font-weight: bold;
-    font-size: 20px;
-    color: white;
-    text-shadow: 1px 1px #555;
-  }
+  .logo img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
 
   .search {
     padding: 6px 14px;

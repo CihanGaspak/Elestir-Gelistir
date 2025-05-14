@@ -3,7 +3,7 @@ import 'package:elestir_gelistir/homepage.dart';
 import 'package:elestir_gelistir/profilpage.dart';
 import 'package:flutter/material.dart';
 
-import 'activitiespage.dart';
+import 'explorepage/explore.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -18,7 +18,7 @@ class _MainPageState extends State<MainPage> {
 
   final List<Widget> _pages = const [
     HomePage(),
-    ActivitiesPage(),
+    ExplorePage(),
     AiPage(),
     NotificationsPage(),
     ProfilePage(),

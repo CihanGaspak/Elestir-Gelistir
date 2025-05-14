@@ -337,20 +337,30 @@
     const postFeed = document.getElementById("post-feed");
   
     onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          currentUser = {
-            uid: user.uid,
-            ...userDoc.data()
-          };
-          document.getElementById("post-username").textContent = currentUser.username;
-          if (currentUser.photoUrl?.startsWith("assets/")) {
-            document.getElementById("user-avatar").src = currentUser.photoUrl;
-          }
-        }
+  if (user) {
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (userDoc.exists()) {
+      currentUser = {
+        uid: user.uid,
+        ...userDoc.data()
+      };
+      document.getElementById("post-username").textContent = currentUser.username;
+      if (currentUser.photoUrl?.startsWith("assets/")) {
+        document.getElementById("user-avatar").src = currentUser.photoUrl;
       }
-    });
+    }
+     renderPosts("Tümü");
+  }
+});
+
+
+onSnapshot(collection(db, "posts"), snapshot => {
+  allPosts = snapshot.docs.map(doc => ({
+    docId: doc.id,
+    data: doc.data()
+  }));
+});
+
   
     window.submitPost = async function () {
       const content = document.getElementById("post-content").value.trim();
@@ -367,6 +377,7 @@
         authorName: currentUser.username,
         authorPhotoUrl: currentUser.photoUrl || '',
         date: new Date(),
+        dailyPick: false,
         progressStep: 0,
         likedBy: [],
         savedBy: [],
@@ -383,67 +394,62 @@
       document.getElementById("submit-button").style.backgroundColor = "gray";
     };
   
-    function renderPosts(category = "Tümü") {
+async function renderPosts(category = "Tümü") {
   postFeed.innerHTML = "";
   const uid = currentUser?.uid || "";
   const filtered = category === "Tümü"
     ? allPosts
     : allPosts.filter(post => post.data.category === category);
 
-  filtered.forEach(({ docId, data }) => {
-    const postHTML = generatePostHTML(data, docId, uid);
+  for (const { docId, data } of filtered) {
+    const postHTML = await generatePostHTML(data, docId, uid);
     postFeed.insertAdjacentHTML("beforeend", postHTML);
-  });
-
-  // 👍 Etkileşim butonlarını burada aktif ediyoruz:
-  setTimeout(() => {
-    filtered.forEach(({ docId, data }) => {
-      const likeBtn = document.getElementById(`like-${docId}`);
-      const saveBtn = document.getElementById(`save-${docId}`);
-      const shareBtn = document.getElementById(`share-${docId}`);
-
-      if (likeBtn) {
-        likeBtn.addEventListener("click", async (e) => {
-          e.stopPropagation();
-          const isLiked = data.likedBy?.includes(currentUser?.uid);
-          await toggleLike(docId, currentUser.uid, data.likedBy || []);
-          let count = parseInt(likeBtn.textContent.trim().split(" ").pop());
-          const icon = likeBtn.querySelector("i");
-          icon.classList.replace(isLiked ? "fas" : "far", isLiked ? "far" : "fas");
-          likeBtn.innerHTML = `<i class="fa${isLiked ? "r" : "s"} fa-thumbs-up"></i> ${isLiked ? count - 1 : count + 1}`;
-        });
-      }
-
-      if (saveBtn) {
-        saveBtn.addEventListener("click", async (e) => {
-          e.stopPropagation();
-          const isSaved = data.savedBy?.includes(currentUser?.uid);
-          await toggleSave(docId, currentUser.uid, data.savedBy || []);
-          const icon = saveBtn.querySelector("i");
-          icon.classList.replace(isSaved ? "fas" : "far", isSaved ? "far" : "fas");
-        });
-      }
-
-      if (shareBtn) {
-        shareBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const url = `${window.location.origin}/post.html?id=${docId}`;
-          if (navigator.share) {
-            navigator.share({
-              title: data.content?.substring(0, 50) || "Gönderi",
-              text: "Bu gönderiye göz at!",
-              url: url,
-            }).catch(console.error);
-          } else {
-            navigator.clipboard.writeText(url);
-            alert("Bağlantı panoya kopyalandı 📋");
-          }
-        });
-      }
-    });
-  }, 0);
+    attachPostEvents(docId, data, uid, category); // 🟢 Her post için ayrı event ekle
+  }
 }
 
+// 🔥 Tek tek buton event'leri ekleyen fonksiyon
+function attachPostEvents(docId, data, uid, category) {
+  // Her zaman güncel DOM'dan al
+  const likeBtn = document.getElementById(`like-${docId}`);
+  const saveBtn = document.getElementById(`save-${docId}`);
+  const shareBtn = document.getElementById(`share-${docId}`);
+
+  if (likeBtn) {
+    likeBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      await toggleLike(docId, uid, data.likedBy || []);
+      // ✅ Güncel datayı çekip sadece o postu güncelle
+      const updatedDoc = await getDoc(doc(db, "posts", docId));
+      const updatedData = updatedDoc.data();
+      const postContainer = document.getElementById(`post-card-${docId}`);
+      postContainer.outerHTML = await generatePostHTML(updatedData, docId, uid);
+      // ✅ Yeni DOM elemanına tekrar event ekle (kendini tekrar bağlar)
+      attachPostEvents(docId, updatedData, uid, category);
+    });
+  }
+
+  if (saveBtn) {
+    saveBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      await toggleSave(docId, uid, data.savedBy || []);
+      const updatedDoc = await getDoc(doc(db, "posts", docId));
+      const updatedData = updatedDoc.data();
+      const postContainer = document.getElementById(`post-card-${docId}`);
+      postContainer.outerHTML = await generatePostHTML(updatedData, docId, uid);
+      attachPostEvents(docId, updatedData, uid, category);
+    });
+  }
+
+  if (shareBtn) {
+    shareBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const url = `${window.location.origin}/post.html?id=${docId}`;
+      navigator.clipboard.writeText(url);
+      alert("Bağlantı panoya kopyalandı 📋");
+    });
+  }
+}
 
   
     // ⛳️ filterPosts fonksiyonunu global hale getiriyoruz:
@@ -480,9 +486,27 @@ function timeAgo(date) {
 }
 
 // 🔥 generatePostHTML fonksiyonu sadece işine odaklanır
-function generatePostHTML(post, docId, uid) {
+async function generatePostHTML(post, docId, uid) {
+  // Kullanıcı verisini Firestore'dan al
+  let authorData = { username: "Kullanıcı", photoUrl: "assets/avatars/avatar1.png" };
+  try {
+    const userSnap = await getDoc(doc(db, "users", post.authorId));
+    if (userSnap.exists()) {
+      authorData = userSnap.data();
+    }
+  } catch (e) {
+    console.error("Kullanıcı verisi alınamadı:", e);
+  }
+
   const isLiked = post.likedBy?.includes(uid);
+const likeIconClass = isLiked ? 'fas' : 'far';
+const likeColor = isLiked ? 'orange' : 'black';
+
+
   const isSaved = post.savedBy?.includes(uid);
+  const saveColor = isSaved ? 'orange' : 'black';
+  const saveIconClass = isSaved ? 'fas' : 'far';
+
   const progress = post.progressStep ?? 0;
   const postDateObj = new Date(post.date?.seconds * 1000);
   const postDate = timeAgo(postDateObj);
@@ -506,9 +530,8 @@ function generatePostHTML(post, docId, uid) {
     "Diğer": "fas fa-ellipsis-h"
   };
 
-  // ✅ İlk ikon her zaman turuncu olacak, diğerleri normal progress kontrolüyle
   const progressHtml = progressIcons.map((step, index) => `
-    <i class="${step.icon}" title="${step.label}" 
+    <i class="${step.icon}" title="${step.label}"
       style="color:${index === 0 ? 'orange' : (progress >= index + 1 ? 'orange' : '#ccc')}; margin-right:6px;"></i>
   `).join('');
 
@@ -517,13 +540,13 @@ function generatePostHTML(post, docId, uid) {
   `;
 
   return `
-    <div class="post-card">
+    <div class="post-card" id="post-card-${docId}">
       <div onclick="goToPostDetail('${docId}')" style="cursor: pointer;">
         <div class="post-header">
-          <img src="${post.authorPhotoUrl || 'assets/avatars/avatar1.png'}" class="avatar" alt="Avatar">
+          <img src="${authorData.photoUrl}" class="avatar" alt="Avatar">
           <div class="author-info">
-            <p class="author-name">${post.authorName || 'Kullanıcı'}</p>
-            <p class="post-date">${postDate}</p>
+            <p class="author-name">${authorData.username}</p>
+             <p class="post-date">${timeAgo(new Date(post.date?.seconds * 1000))}</p>
           </div>
           <div style="margin-left:auto; text-align:right;">
             <div>${progressHtml}</div>
@@ -543,24 +566,18 @@ function generatePostHTML(post, docId, uid) {
 
       <div class="post-actions">
         <span id="like-${docId}">
-          <i class="fa${isLiked ? 's' : 'r'} fa-thumbs-up"></i> ${post.likesCount || 0}
+          <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up" style="color:${isLiked ? 'orange' : 'black'};"></i> ${post.likesCount || 0}
         </span>
+        <span><i class="far fa-comment"></i> ${post.commentsCount || 0}</span>
         <span id="save-${docId}">
-          <i class="fa${isSaved ? 's' : 'r'} fa-bookmark"></i>
+          <i class="${isSaved ? 'fas' : 'far'} fa-bookmark" style="color:${isSaved ? 'orange' : 'black'};"></i>
         </span>
-        <span id="share-${docId}">
-          <i class="fas fa-share"></i>
-        </span>
-        <span>
-          <i class="far fa-eye"></i> ${post.views || 0}
-        </span>
+        <span id="share-${docId}"><i class="fas fa-share"></i></span>
+        <span><i class="far fa-eye"></i> ${post.views || 0}</span>
       </div>
     </div>
   `;
 }
-
-
-  
 
 
   
@@ -569,8 +586,6 @@ function generatePostHTML(post, docId, uid) {
         docId: doc.id,
         data: doc.data()
       }));
-      renderPosts("Tümü");
-
       // GÜNÜN GELİŞTİRİSİ BURADA ÇEKİLSİN
       loadDailyPost();
     });
@@ -583,15 +598,32 @@ async function loadDailyPost() {
   const postRef = collection(db, "posts");
   const querySnapshot = await getDocs(postRef);
 
-  const allPosts = [];
+  const dailyPosts = [];
   querySnapshot.forEach(doc => {
-    allPosts.push({ id: doc.id, ...doc.data() });
+    const data = doc.data();
+    if (data.dailyPick === true) {
+      dailyPosts.push({ id: doc.id, ...data });
+    }
   });
 
-  if (allPosts.length === 0) return;
+  if (dailyPosts.length === 0) {
+    document.getElementById("daily-highlight").innerHTML = `<div class="daily-highlight">Bugün için seçilen bir gönderi yok.</div>`;
+    return;
+  }
 
-  const randomIndex = Math.floor(Math.random() * allPosts.length);
-  const post = allPosts[randomIndex];
+  const randomIndex = Math.floor(Math.random() * dailyPosts.length);
+  const post = dailyPosts[randomIndex];
+
+  // 🔥 Burada authorId'den kullanıcı verisini çekiyoruz:
+  let authorData = { username: "Kullanıcı", photoUrl: "assets/avatars/avatar1.png" };
+  try {
+    const userSnap = await getDoc(doc(db, "users", post.authorId));
+    if (userSnap.exists()) {
+      authorData = userSnap.data();
+    }
+  } catch (e) {
+    console.error("Kullanıcı verisi alınamadı:", e);
+  }
 
   const dailyHTML = `
   <div class="daily-highlight">
@@ -600,14 +632,14 @@ async function loadDailyPost() {
     </div>
     <div class="highlight-card" onclick="goToPostDetail('${post.id}')">
       <div class="highlight-avatar">
-        <img src="${post.authorPhotoUrl || 'assets/avatars/avatar1.png'}" alt="Kullanıcı Avatarı">
+        <img src="${authorData.photoUrl}" alt="Kullanıcı Avatarı">
       </div>
       <div class="highlight-content">
         <h3>Kategori: <span>${post.category || 'Genel'}</span></h3>
         <p>"${post.content?.substring(0, 120) || ''}..."</p>
         <div class="highlight-meta">
-          <span>👤 ${post.authorName || 'Kullanıcı'}</span>
-          <span>🗓️ ${new Date(post.date?.seconds * 1000).toLocaleDateString("tr-TR")}</span>
+          <span>👤 ${authorData.username}</span>
+          <span>🗓️ ${post.date?.seconds ? new Date(post.date.seconds * 1000).toLocaleDateString("tr-TR") : ''}</span>
         </div>
       </div>
     </div>
@@ -615,6 +647,7 @@ async function loadDailyPost() {
 
   document.getElementById("daily-highlight").innerHTML = dailyHTML;
 }
+
 
   </script>
   

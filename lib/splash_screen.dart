@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
 
-    currentUser = FirebaseAuth.instance.currentUser; // Kullanıcıyı hemen kontrol et
+    currentUser = FirebaseAuth.instance.currentUser;
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -35,22 +35,42 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       CurvedAnimation(parent: _controller, curve: Curves.easeIn),
     );
 
-    _controller.repeat(reverse: true); // Logo büyü-küçül animasyonu
+    _controller.forward();
 
-    Future.delayed(const Duration(seconds: 5), () {
-      if (currentUser != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainPage()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginPage()),
-        );
+    bool firstCycleDone = false;
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        if (!firstCycleDone) {
+          // İlk büyüme tamamlandı → küçült
+          _controller.reverse();
+          firstCycleDone = true;
+        } else {
+          // İkinci büyüme tamamlandı → direkt geçiş yap
+          _goToNext();
+        }
+      } else if (status == AnimationStatus.dismissed && firstCycleDone) {
+        // Küçülme tamamlandıktan sonra son kez büyüt
+        _controller.forward();
       }
     });
   }
+
+  void _goToNext() {
+    if (currentUser != null) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const MainPage()),
+            (route) => false,
+      );
+    } else {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+            (route) => false,
+      );
+    }
+  }
+
+
 
   @override
   void dispose() {
@@ -61,37 +81,77 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.orange.shade600,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ScaleTransition(
-              scale: _scaleAnimation,
-              child: Image.asset(
-                'assets/default_icon.png',
-                width: 120,
-                height: 120,
-              ),
-            ),
-            const SizedBox(height: 24),
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: const Text(
-                "Birlikte Gelişiyoruz...",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF1B0B3A), Color(0xFFFF8C00)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ScaleTransition(
+                scale: _scaleAnimation,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 30,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Image.asset(
+                    'assets/default_icon.png',
+                    width: 160,
+                    height: 160,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              strokeWidth: 3,
-            ),
-          ],
+              const SizedBox(height: 20),
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: const Text(
+                  "Eleştir - Geliştir",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2),
+                ),
+              ),
+              const SizedBox(height: 12),
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: const Text(
+                  "Birlikte Gelişiyoruz...",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                strokeWidth: 3,
+              ),
+              const SizedBox(height: 60),
+              // AIM DEV footer
+              Text(
+                "AIM DEV.",
+                style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 
 class ChatBubble extends StatelessWidget {
   final String text;
@@ -18,9 +19,6 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color userBubbleColor = Colors.grey.shade200; // Kullanıcı mesajları gri
-    final Color aiBubbleColor = Colors.orange.shade50;  // AI mesajları açık turuncu
-
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Row(
@@ -30,55 +28,16 @@ class ChatBubble extends StatelessWidget {
           if (!isUser) ...[
             const CircleAvatar(
               radius: 16,
-              backgroundImage: AssetImage('assets/avatars/avatar0.png'),
+              backgroundImage: AssetImage('assets/avatars/elestir-AI.png'),
             ),
             const SizedBox(width: 6),
           ],
           Flexible(
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isUser ? userBubbleColor : aiBubbleColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(12),
-                  topRight: const Radius.circular(12),
-                  bottomLeft: isUser ? const Radius.circular(12) : const Radius.circular(0),
-                  bottomRight: isUser ? const Radius.circular(0) : const Radius.circular(12),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (username != null)
-                    Text(
-                      username!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isUser ? Colors.blueGrey : Colors.orange.shade600,
-                        fontWeight: isUser ? FontWeight.w600 : FontWeight.bold,
-                      ),
-                    ),
-                  const SizedBox(height: 4),
-                  isTyping
-                      ? TweenAnimationBuilder<int>(
-                    tween: IntTween(begin: 1, end: 3),
-                    duration: const Duration(seconds: 1),
-                    builder: (_, value, __) => Text('.' * value, style: const TextStyle(fontSize: 20)),
-                    onEnd: () {},
-                  )
-                      : Text(
-                    text,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ],
-              ),
+            child: isUser
+                ? _buildUserBubble()
+                : ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 80, maxWidth: 300),
+              child: _buildAiBubble(),
             ),
           ),
           if (isUser) ...[
@@ -92,6 +51,92 @@ class ChatBubble extends StatelessWidget {
                   : const AssetImage('assets/avatars/avatar11.png'),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserBubble() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(12),
+          topRight: Radius.circular(12),
+          bottomLeft: Radius.circular(12),
+          bottomRight: Radius.circular(0),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (username != null)
+            Text(
+              username!,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.blueGrey,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          const SizedBox(height: 4),
+          isTyping
+              ? TweenAnimationBuilder<int>(
+            tween: IntTween(begin: 1, end: 3),
+            duration: const Duration(seconds: 1),
+            builder: (_, value, __) => Text('.' * value, style: const TextStyle(fontSize: 20)),
+          )
+              : Text(
+            text,
+            style: const TextStyle(fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAiBubble() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(12),
+          topRight: Radius.circular(12),
+          bottomLeft: Radius.circular(0),
+          bottomRight: Radius.circular(12),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (username != null)
+            Text(
+              username!,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.orange.shade600,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          const SizedBox(height: 4),
+          isTyping
+              ? TweenAnimationBuilder<int>(
+            tween: IntTween(begin: 1, end: 3),
+            duration: const Duration(seconds: 1),
+            builder: (_, value, __) => Text('.' * value, style: const TextStyle(fontSize: 20)),
+          )
+              : Html(
+            data: text,
+            style: {
+              "body": Style(margin: Margins.zero, padding: HtmlPaddings.zero, fontSize: FontSize(14)),
+              "ul": Style(margin: Margins.zero, padding: HtmlPaddings.zero),
+              "li": Style(margin: Margins.zero, padding: HtmlPaddings.only(left: 0), fontWeight: FontWeight.bold),
+            },
+          ),
         ],
       ),
     );

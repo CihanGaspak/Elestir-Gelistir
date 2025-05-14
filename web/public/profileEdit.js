@@ -142,7 +142,6 @@ export function showProfileEditWidget(userData) {
         username: newUsername,
         photoUrl: selectedAvatar
       });
-      alert("Profil güncellendi.");
       widget.remove();
       location.reload();
     } catch (err) {

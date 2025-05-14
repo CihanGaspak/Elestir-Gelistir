@@ -27,14 +27,7 @@
 }
 
     /* Kısaltılmış stiller - seninle aynı */
-    .profile-header { display: flex; align-items: center; padding: 20px; background: white; border-radius: 12px; margin: 20px auto; max-width: 700px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    .profile-header img.avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-right: 20px; }
-    .tab-buttons { display: flex; justify-content: center; margin-top: 20px; }
-    .tab-btn { background: #eee; border: none; padding: 10px 20px; margin: 0 5px; cursor: pointer; border-radius: 20px; transition: 0.3s; }
-    .tab-btn.active { background-color: #ffa726; color: white; font-weight: bold; }
-    .tab-content { display: none; max-width: 700px; margin: 20px auto; }
-    .tab-content.active { display: block; }
-    .post-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+    .post-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.05); max-width: 750px; }
     .post-header { display: flex; align-items: center; }
     .post-header .avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; }
     .post-actions { display: flex; gap: 15px; margin-top: 10px; }
@@ -78,57 +71,124 @@
   color: #ffa726;
 }
 /* Profil Düzenle ve Çıkış Yap butonları için stil */
-.profile-header button {
-  margin-left: 10px;
-  margin-top: 10px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  display: inline-block;
-}
-
-/* Profil Düzenle butonu yeşil olsun */
-/* Profil Düzenle butonu yeşil olsun */
-.profile-header button.profile-edit-btn {
-  background-color: #4CAF50; /* Canlı, orta ton yeşil */
-  color: white;
-  transition: background-color 0.3s ease;
-}
-
-.profile-header button.profile-edit-btn:hover {
-  background-color: #45a040; /* Hover durumunda biraz daha koyu bir yeşil */
-}
-
-.profile-header button.profile-logout-btn {
-  background-color: #d32f2f;
-  color: white;
-}
-
-.profile-header button.profile-logout-btn:hover {
-  background-color: #c62828;
-}
-
-/* Butonlar arasındaki mesafeyi ayarlama */
 .profile-header {
   display: flex;
   align-items: center;
   padding: 20px;
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   margin: 20px auto;
   max-width: 700px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  justify-content: space-between; /* Butonları sağa iter */
 }
+
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-actions button {
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.profile-actions .profile-edit-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.profile-actions .profile-edit-btn:hover {
+  background-color: #45a040;
+}
+
+.profile-actions .profile-logout-btn {
+  background-color: #d32f2f;
+  color: white;
+}
+
+.profile-actions .profile-logout-btn:hover {
+  background-color: #c62828;
+}
+
 
 .profile-texts {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   color: #222;
-  margin-right: auto; /* Butonları sağa itmek için */
+  flex-grow: 1;
+}
+
+.profile-texts h2 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.profile-texts #profile-username {
+  font-size: 16px;
+  color: #666;
+  margin: 4px 0 8px 0;
+}
+
+.profile-texts .bio-text {
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.stats {
+  display: flex;
+  gap: 20px;
+  font-size: 15px;
+}
+
+.stats div {
+  text-align: center;
+}
+
+.stats div strong {
+  display: block;
+  font-size: 18px;
+  color: #ffa726;
+}
+
+.stats div span {
+  color: #555;
+  font-weight: 500;
+}
+
+.stats div:hover {
+  color: #ffa726;
+  cursor: pointer;
+}
+
+
+.posts-wrapper {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  padding: 20px;
+  max-width: 700px;
+  margin: 20px auto; /* Ortalar */
+}
+.posts-title-wrapper {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  padding: 20px;
+  max-width: 700px;
+  margin: 20px auto; /* Ortalar */
+  text-align: center;
+}
+#posts-container {
+  max-width: 700px;
+  margin: 20px auto; /* Ortalar */
 }
 
 
@@ -136,105 +196,47 @@
 </head>
 <body>
   <div id="navbar-placeholder"></div>
+
   <div class="profile-header">
-    <img src="assets/avatars/avatar1.png" class="avatar" alt="Avatar" />
-    <div class="profile-texts">
-      <h2 id="profile-name">cihan</h2>
-      <p id="profile-username">@ilimbeser</p>
-    
-      <!-- Biyografi -->
-      <p class="bio-text" style="font-weight: 600;">
-        <span id="profile-bio">Nisan değilse Mayıs</span>
-      </p>
-    
-      <!-- İstatistikler -->
-      <div class="stats clickable-stats" style="font-weight: bold;">
-        <div onclick="alert('Takipçi listesi yakında');">
-          <strong id="followers-count">143</strong><br>Takipçi
-        </div>
-        <div onclick="alert('Takip edilenler yakında');">
-          <strong id="following-count">87</strong><br>Takip
-        </div>
-        <div>
-          <strong id="usefulness-score">8.9/10</strong><br>Faydalılık
-        </div>
-        <div>
-          <strong id="posts-count">0</strong><br>Post
-        </div>
-      </div>
+  <img src="assets/avatars/avatar1.png" class="avatar" alt="Avatar" />
+  <div class="profile-texts">
+    <h2 id="profile-name">Cihan Gaspak</h2>
+    <p id="profile-username">@ilimbeser</p>
+    <p id="profile-bio" class="bio-text">Bunca yıl sönmemiş umudum<br>Nisan değilse Mayıs, Perşembe değilse Pazar</p>
+
+    <div class="stats clickable-stats">
+      <div><strong id="followers-count">143</strong><br><span>Takipçi</span></div>
+      <div><strong id="following-count">87</strong><br><span>Takip</span></div>
+      <div><strong id="usefulness-score">8.9/10</strong><br><span>Faydalılık</span></div>
+      <div><strong id="posts-count">0</strong><br><span>Post</span></div>
     </div>
-    
   </div>
+
+  <!-- Butonlar sağda -->
+  <div class="profile-actions" id="profile-actions"></div>
+</div>
+
+
   
+  <div class="posts-title-wrapper">
+  <h3>Postlarım</h3>
+</div>
+<div id="posts-container"></div>
+
+
     
   </div>
 
-  <div class="tab-buttons">
-    <button class="tab-btn active" onclick="showTab(0)">Devam Ediyor</button>
-    <button class="tab-btn" onclick="showTab(1)">Tamamlandı</button>
-    <button class="tab-btn" onclick="showTab(2)">Kaydedilenler</button>
-  </div>
-  <div class="tab-content active" id="tab-0"></div>
-  <div class="tab-content" id="tab-1"></div>
-  <div class="tab-content" id="tab-2"></div>
 
-  <!-- Firebase ve JS -->
   <script type="module">
+// ✅ Firebase ve auth tanımları aynen kalsın
 import { showProfileEditWidget } from './profileEdit.js';
-import { toggleLike, toggleSave } from './interactions.js';
-import { auth, db } from './firebase.js'; // ✔ Sadece buradan al
+import { auth, db } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { doc, getDoc, collection, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { doc, getDoc, collection, query, where, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-
-async function generatePostHTML(post, docId, uid) {
-    const isLiked = post.likedBy?.includes(uid);
-    const isSaved = post.savedBy?.includes(uid);
-    const progress = post.progressStep ?? 0;
-    let authorPhoto = 'assets/avatars/avatar1.png';
-    let authorName = 'Kullanıcı';
-
-    try {
-        const userSnap = await getDoc(doc(db, "users", post.authorId));
-        if (userSnap.exists()) {
-            const userData = userSnap.data();
-            authorPhoto = userData.photoUrl || 'assets/avatars/avatar1.png';
-            authorName = userData.username || 'Kullanıcı';
-        }
-    } catch (e) {
-        console.error("Yazar bilgisi alınamadı", e);
-    }
-
-    return `
-        <div class="post-card">
-            <div onclick="goToPostDetail('${docId}')" style="cursor: pointer;">
-                <div class="post-header">
-                    <img src="${authorPhoto}" class="avatar" alt="Avatar">
-                    <div class="author-info">
-                        <p class="author-name">${authorName}</p>
-                        <p class="post-date">${new Date(post.date?.seconds * 1000).toLocaleString("tr-TR")}</p>
-                    </div>
-                </div>
-                <div class="post-content"><p>${post.content || ''}</p></div>
-                <div class="step-section">
-                    <div class="step-title">💡 Eleştir</div>
-                    <div class="step-body">${progress >= 1 ? (post.step1Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
-                    <div class="step-title">🛠 Düşündür</div>
-                    <div class="step-body">${progress >= 2 ? (post.step2Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
-                    <div class="step-title">✅ Geliştir</div>
-                    <div class="step-body">${progress >= 3 ? (post.step3Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
-                </div>
-            </div>
-            <div class="post-actions">
-                <span id="like-${docId}"><i class="fa${isLiked ? 's' : 'r'} fa-thumbs-up"></i> ${post.likesCount || 0}</span>
-                <span onclick="goToPostDetail('${docId}')"><i class="far fa-comment"></i> ${post.commentsCount || 0}</span>
-                <span id="save-${docId}"><i class="fa${isSaved ? 's' : 'r'} fa-bookmark"></i></span>
-                <span id="share-${docId}"><i class="fas fa-share"></i></span>
-                <span><i class="far fa-eye"></i> ${post.views || 0}</span>
-            </div>
-        </div>
-    `;
-}
+// 🔥 Yeni sistem
+let allPosts = [];
 
 onAuthStateChanged(auth, async (user) => {
     const params = new URLSearchParams(window.location.search);
@@ -251,88 +253,231 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById("following-count").textContent = data.following || 0;
         document.getElementById("usefulness-score").textContent = data.usefulness || "0/10";
 
-        const postQuery = query(collection(db, "posts"), where("authorId", "==", profileUid));
-        const postSnapshot = await getDocs(postQuery);
-        document.getElementById("posts-count").textContent = postSnapshot.size || 0;
-
+         // 🔥 Tam burada butonları ekle
         if (user.uid === profileUid) {
-            const editBtn = document.createElement("button");
-            editBtn.textContent = "Profili Düzenle";
-            editBtn.onclick = () => showProfileEditWidget({ uid: profileUid, username: data.username });
-            editBtn.classList.add("profile-edit-btn");
-            document.querySelector(".profile-header").appendChild(editBtn);
+    const actionsContainer = document.getElementById("profile-actions");
+    actionsContainer.innerHTML = `
+      <button class="profile-edit-btn">Profili Düzenle</button>
+      <button class="profile-logout-btn">Çıkış Yap</button>
+    `;
 
-            const logoutBtn = document.createElement("button");
-            logoutBtn.textContent = "Çıkış Yap";
-            logoutBtn.onclick = () => auth.signOut().then(() => window.location.href = "login.html");
-            logoutBtn.classList.add("profile-logout-btn");
-            document.querySelector(".profile-header").appendChild(logoutBtn);
-        }
+    document.querySelector(".profile-edit-btn").onclick = () => showProfileEditWidget({ uid: profileUid, username: data.username });
+    document.querySelector(".profile-logout-btn").onclick = () => auth.signOut().then(() => window.location.href = "login.html");
+}
+
+
     }
 
+    // ✅ Burada query'yi tanımla
     const q = query(collection(db, "posts"), where("authorId", "==", profileUid));
-    onSnapshot(q, async (snapshot) => {
-        const devam = document.getElementById("tab-0");
-        const tamam = document.getElementById("tab-1");
-        const kayit = document.getElementById("tab-2");
 
-        devam.innerHTML = tamam.innerHTML = kayit.innerHTML = "";
+    // Postları dinle ve post sayısını güncelle
+    onSnapshot(q, (snapshot) => {
+        allPosts = snapshot.docs.map(doc => ({
+            docId: doc.id,
+            data: doc.data()
+        }));
 
-        for (const docSnap of snapshot.docs) {
-            const post = docSnap.data();
-            const docId = docSnap.id;
-            const html = await generatePostHTML(post, docId, profileUid);
+        // ✅ Doğru yerde post sayısını güncelle
+        document.getElementById("posts-count").textContent = allPosts.length;
 
-            if (post.progressStep < 3) devam.insertAdjacentHTML("beforeend", html);
-            else tamam.insertAdjacentHTML("beforeend", html);
-
-            if (post.savedBy?.includes(profileUid)) {
-                kayit.insertAdjacentHTML("beforeend", html);
-            }
-
-            setTimeout(() => {
-                const likeBtn = document.getElementById(`like-${docId}`);
-                const saveBtn = document.getElementById(`save-${docId}`);
-                const shareBtn = document.getElementById(`share-${docId}`);
-
-                shareBtn?.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    const shareUrl = `${window.location.origin}/post.html?id=${docId}`;
-                    if (navigator.share) {
-                        navigator.share({ title: post.content?.substring(0, 50) || "Gönderi", text: "Bu gönderiye göz at!", url: shareUrl }).catch(console.error);
-                    } else {
-                        navigator.clipboard.writeText(shareUrl);
-                        alert("Bağlantı panoya kopyalandı 📋");
-                    }
-                });
-
-                likeBtn?.addEventListener("click", async () => {
-                    const isLiked = post.likedBy?.includes(auth.currentUser?.uid);
-                    await toggleLike(docId, profileUid, post.likedBy || []);
-                });
-
-                saveBtn?.addEventListener("click", async () => {
-                    const isSaved = post.savedBy?.includes(auth.currentUser?.uid);
-                    await toggleSave(docId, profileUid, post.savedBy || []);
-                });
-            }, 0);
-        }
+        renderPosts();
     });
 });
 
-// 👇 Global fonksiyonlar dışarıda olmalı
-window.showTab = function (index) {
-    document.querySelectorAll('.tab-content').forEach((tab, i) => tab.classList.toggle('active', i === index));
-    document.querySelectorAll('.tab-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
-};
+function logoutUser() {
+    auth.signOut().then(() => {
+        window.location.href = "index.html";
+    });
+}
 
-window.goToPostDetail = function (postId) {
-    window.location.href = `post.html?id=${postId}`;
-};
+async function renderPosts() {
+    const container = document.getElementById("posts-container");
+    container.innerHTML = ""; // Önce temizle
+
+    for (const { docId, data } of allPosts) {
+        const cardHTML = await generatePostHTML(data, docId, auth.currentUser.uid);
+        const card = document.createElement('div');
+        card.innerHTML = cardHTML;
+        container.appendChild(card.firstElementChild);
+
+        // Her karta etkileşimleri bağla
+        attachPostEvents(docId, data);
+    }
+}
+
+
+async function attachPostEvents(docId, data) {
+    const cardContainer = document.getElementById(`post-card-${docId}`);
+    if (!cardContainer) return;
+
+    // Beğeni event
+    const likeBtn = cardContainer.querySelector(`#like-${docId}`);
+    if (likeBtn) {
+        likeBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            const postRef = doc(db, "posts", docId);
+            const docSnap = await getDoc(postRef);
+            const post = docSnap.data();
+            const isLiked = post.likedBy?.includes(auth.currentUser.uid);
+            post.likedBy = isLiked ? post.likedBy.filter(u => u !== auth.currentUser.uid) : [...(post.likedBy || []), auth.currentUser.uid];
+            post.likesCount = post.likedBy.length;
+            await updateDoc(postRef, { likedBy: post.likedBy, likesCount: post.likesCount });
+
+            const newHTML = document.createElement("div");
+            newHTML.innerHTML = await generatePostHTML(post, docId, auth.currentUser.uid);
+            cardContainer.replaceWith(newHTML.firstElementChild);
+            await attachPostEvents(docId, post);
+        });
+    }
+
+    // Kaydet event
+    const saveBtn = cardContainer.querySelector(`#save-${docId}`);
+    if (saveBtn) {
+        saveBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            const postRef = doc(db, "posts", docId);
+            const docSnap = await getDoc(postRef);
+            const post = docSnap.data();
+            const isSaved = post.savedBy?.includes(auth.currentUser.uid);
+            post.savedBy = isSaved ? post.savedBy.filter(u => u !== auth.currentUser.uid) : [...(post.savedBy || []), auth.currentUser.uid];
+            await updateDoc(postRef, { savedBy: post.savedBy });
+
+            const newHTML = document.createElement("div");
+            newHTML.innerHTML = await generatePostHTML(post, docId, auth.currentUser.uid);
+            cardContainer.replaceWith(newHTML.firstElementChild);
+            await attachPostEvents(docId, post);
+        });
+    }
+}
+
+
+// 🔥 generatePostHTML fonksiyonu index.html'dekiyle aynı (gerekirse sana kopyasını da vereyim)
+async function generatePostHTML(post, docId, uid) {
+  // Kullanıcı verisini Firestore'dan al
+  let authorData = { username: "Kullanıcı", photoUrl: "assets/avatars/avatar1.png" };
+  try {
+    const userSnap = await getDoc(doc(db, "users", post.authorId));
+    if (userSnap.exists()) {
+      authorData = userSnap.data();
+    }
+  } catch (e) {
+    console.error("Kullanıcı verisi alınamadı:", e);
+  }
+
+  const isLiked = post.likedBy?.includes(uid);
+const likeIconClass = isLiked ? 'fas' : 'far';
+const likeColor = isLiked ? 'orange' : 'black';
+
+
+  const isSaved = post.savedBy?.includes(uid);
+  const saveColor = isSaved ? 'orange' : 'black';
+  const saveIconClass = isSaved ? 'fas' : 'far';
+
+  const progress = post.progressStep ?? 0;
+  const postDateObj = new Date(post.date?.seconds * 1000);
+  const postDate = timeAgo(postDateObj);
+
+  const progressIcons = [
+    { icon: "fas fa-lightbulb", label: "Fikir" },
+    { icon: "fas fa-tools", label: "Çözüm" },
+    { icon: "fas fa-check-circle", label: "Sonuç" }
+  ];
+
+  const categoryIcons = {
+    "Eğitim": "fas fa-school",
+    "Spor": "fas fa-basketball-ball",
+    "Teknoloji": "fas fa-microchip",
+    "Tamirat": "fas fa-tools",
+    "Sağlık": "fas fa-heartbeat",
+    "Sanat": "fas fa-palette",
+    "Yazılım": "fas fa-code",
+    "Kişisel Gelişim": "fas fa-user-graduate",
+    "Araç Bakım": "fas fa-car",
+    "Diğer": "fas fa-ellipsis-h"
+  };
+
+  const progressHtml = progressIcons.map((step, index) => `
+    <i class="${step.icon}" title="${step.label}"
+      style="color:${index === 0 ? 'orange' : (progress >= index + 1 ? 'orange' : '#ccc')}; margin-right:6px;"></i>
+  `).join('');
+
+  const categoryHtml = `
+    <i class="${categoryIcons[post.category] || categoryIcons['Diğer']}" style="color:#666; margin-right:4px;"></i> ${post.category || 'Diğer'}
+  `;
+
+  return `
+    <div class="post-card" id="post-card-${docId}">
+      <div onclick="goToPostDetail('${docId}')" style="cursor: pointer;">
+        <div class="post-header">
+          <img src="${authorData.photoUrl}" class="avatar" alt="Avatar">
+          <div class="author-info">
+            <p class="author-name">${authorData.username}</p>
+             <p class="post-date">${timeAgo(new Date(post.date?.seconds * 1000))}</p>
+          </div>
+          <div style="margin-left:auto; text-align:right;">
+            <div>${progressHtml}</div>
+            <div style="font-size:12px; color:#555; margin-top:4px;">${categoryHtml}</div>
+          </div>
+        </div>
+        <div class="post-content"><p>${post.content || ''}</p></div>
+        <div class="step-section">
+          <div class="step-title">💡 Eleştir</div>
+          <div class="step-body">${progress >= 1 ? (post.step1Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
+          <div class="step-title">🛠 Düşündür</div>
+          <div class="step-body">${progress >= 2 ? (post.step2Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
+          <div class="step-title">✅ Geliştir</div>
+          <div class="step-body">${progress >= 3 ? (post.step3Note || 'Henüz not girilmemiş.') : 'Henüz bu aşamaya geçilmedi.'}</div>
+        </div>
+      </div>
+
+      <div class="post-actions">
+        <span id="like-${docId}">
+          <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up" style="color:${isLiked ? 'orange' : 'black'};"></i> ${post.likesCount || 0}
+        </span>
+        <span><i class="far fa-comment"></i> ${post.commentsCount || 0}</span>
+        <span id="save-${docId}">
+          <i class="${isSaved ? 'fas' : 'far'} fa-bookmark" style="color:${isSaved ? 'orange' : 'black'};"></i>
+        </span>
+        <span id="share-${docId}"><i class="fas fa-share"></i></span>
+        <span><i class="far fa-eye"></i> ${post.views || 0}</span>
+      </div>
+    </div>
+  `;
+}
+
+// 🔥 Eksik olan fonksiyonu ekle (index.html'dekiyle birebir aynısı)
+function timeAgo(date) {
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    let interval = Math.floor(seconds / 31536000);
+    if (interval >= 1) return `${interval} yıl önce`;
+
+    interval = Math.floor(seconds / 2592000);
+    if (interval >= 1) return `${interval} ay önce`;
+
+    interval = Math.floor(seconds / 86400);
+    if (interval >= 1) return `${interval} gün önce`;
+
+    interval = Math.floor(seconds / 3600);
+    if (interval >= 1) return `${interval} saat önce`;
+
+    interval = Math.floor(seconds / 60);
+    if (interval >= 1) return `${interval} dakika önce`;
+
+    return "Az önce";
+}
+
+
 </script>
-
-
-  <!-- Sekme geçişi -->
+<!-- Dinamik Navbar -->
   <script type="module" src="navbar.js"></script>
+  <div id="footer-placeholder"></div>
+  <script>
+    fetch("footer.html")
+      .then(res => res.text())
+      .then(data => document.getElementById("footer-placeholder").innerHTML = data);
+  </script>
 </body>
 </html>
