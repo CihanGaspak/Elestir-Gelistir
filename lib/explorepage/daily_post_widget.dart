@@ -45,10 +45,16 @@ class DailyPostWidget extends StatelessWidget {
 
             return GestureDetector(
               onTap: () {
+                final doc = docs.first;
+                final postData = doc.data() as Map<String, dynamic>;
+                postData['id'] = doc.id; // ❗️ id'yi manuel ekle
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PostDetailPage(post: postData),
+                    builder: (context) => PostDetailPage(
+                      post: postData, // artık post içinde 'id' var
+                    ),
                   ),
                 );
               },

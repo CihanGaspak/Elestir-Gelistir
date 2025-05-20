@@ -26,12 +26,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
   List<String> savedBy = [];
   List<Map<String, dynamic>> comments = [];
   List<TextEditingController> stepNoteControllers =
-  List.generate(3, (_) => TextEditingController());
+      List.generate(3, (_) => TextEditingController());
 
   @override
   void initState() {
     super.initState();
-    postRef = FirebaseFirestore.instance.collection('posts').doc(widget.post['id']);
+    postRef =
+        FirebaseFirestore.instance.collection('posts').doc(widget.post['id']);
     _incrementViews();
     _fetchPostData();
     _loadComments();
@@ -63,7 +64,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
   }
 
   Future<void> _loadComments() async {
-    final query = await postRef.collection('comments').orderBy('date', descending: true).get();
+    final query = await postRef
+        .collection('comments')
+        .orderBy('date', descending: true)
+        .get();
     setState(() {
       comments = query.docs.map((doc) {
         final c = doc.data();
@@ -73,7 +77,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
     });
   }
 
-  Future<void> _toggleCommentLike(String commentId, List<String> likedBy) async {
+  Future<void> _toggleCommentLike(
+      String commentId, List<String> likedBy) async {
     if (currentUserId == null) return;
     final ref = postRef.collection('comments').doc(commentId);
     final isLiked = likedBy.contains(currentUserId);
@@ -93,11 +98,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
     if (difference.inMinutes < 60) return '${difference.inMinutes} dakika önce';
     if (difference.inHours < 24) return '${difference.inHours} saat önce';
     if (difference.inDays < 7) return '${difference.inDays} gün önce';
-    if (difference.inDays < 30) return '${(difference.inDays / 7).floor()} hafta önce';
-    if (difference.inDays < 365) return '${(difference.inDays / 30).floor()} ay önce';
+    if (difference.inDays < 30)
+      return '${(difference.inDays / 7).floor()} hafta önce';
+    if (difference.inDays < 365)
+      return '${(difference.inDays / 30).floor()} ay önce';
     return '${(difference.inDays / 365).floor()} yıl önce';
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -110,8 +116,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
     final photoUrl = post['authorPhotoUrl'] ?? '';
     final step = post['progressStep'] ?? 0;
     final timestamp = post['date'] as Timestamp?;
-
-
 
     final isLiked = currentUserId != null && likedBy.contains(currentUserId);
     final isSaved = currentUserId != null && savedBy.contains(currentUserId);
@@ -142,17 +146,21 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(author, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text(author,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
                         if (timestamp != null)
                           Text(
                             timeAgo(timestamp.toDate()),
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.grey),
                           ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.orange.shade50,
                       borderRadius: BorderRadius.circular(16),
@@ -163,11 +171,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         Row(
                           children: List.generate(3, (i) {
                             return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 2),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
                               child: Icon(
                                 _getStepIcon(i),
                                 size: 20,
-                                color: i <= step ? Colors.orange : Colors.grey.shade300,
+                                color: i <= step
+                                    ? Colors.orange
+                                    : Colors.grey.shade300,
                               ),
                             );
                           }),
@@ -176,7 +187,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         // Kategori
                         Row(
                           children: [
-                            Icon(_getCategoryIcon(category), color: Colors.black, size: 20),
+                            Icon(_getCategoryIcon(category),
+                                color: Colors.black, size: 20),
                             const SizedBox(width: 4),
                             Text(
                               category,
@@ -189,42 +201,39 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         ),
                       ],
                     ),
-                  )
-                  ,
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
               Text(content, style: const TextStyle(fontSize: 16, height: 1.4)),
               const SizedBox(height: 12),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildAction(
                     isLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined,
                     likeCount.toString(),
-                        () async {
+                    () async {
                       if (currentUserId == null) return;
                       final isAlreadyLiked = likedBy.contains(currentUserId);
                       final update = isAlreadyLiked
                           ? {
-                        'likesCount': FieldValue.increment(-1),
-                        'likedBy': FieldValue.arrayRemove([currentUserId])
-                      }
+                              'likesCount': FieldValue.increment(-1),
+                              'likedBy': FieldValue.arrayRemove([currentUserId])
+                            }
                           : {
-                        'likesCount': FieldValue.increment(1),
-                        'likedBy': FieldValue.arrayUnion([currentUserId])
-                      };
+                              'likesCount': FieldValue.increment(1),
+                              'likedBy': FieldValue.arrayUnion([currentUserId])
+                            };
                       await postRef.update(update);
                       _fetchPostData();
                     },
                     isLiked,
                   ),
-
                   _buildAction(
                     Icons.comment_outlined,
                     comments.length.toString(),
-                        () {
+                    () {
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
@@ -233,40 +242,40 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         await _loadComments();
                         setState(() {}); // 👈 Bu satırı ekle
                       });
-                          // yorumdan sonra listeyi yenile
+                      // yorumdan sonra listeyi yenile
                     },
                   ),
-
-
                   _buildAction(
                     Icons.share_outlined,
                     ' ',
-                        () {
+                    () {
                       final shareText = content.trim().isEmpty
                           ? 'Eleştir-Geliştir uygulamasındaki bir gönderiye göz at!'
                           : content;
                       Share.share(shareText); // ← içeriği paylaş
                     },
                   ),
-
                   _buildAction(
                     isSaved ? Icons.bookmark : Icons.bookmark_outline,
                     ' ',
-                        () async {
+                    () async {
                       if (currentUserId == null) return;
                       final update = isSaved
-                          ? {'savedBy': FieldValue.arrayRemove([currentUserId])}
-                          : {'savedBy': FieldValue.arrayUnion([currentUserId])};
+                          ? {
+                              'savedBy': FieldValue.arrayRemove([currentUserId])
+                            }
+                          : {
+                              'savedBy': FieldValue.arrayUnion([currentUserId])
+                            };
                       await postRef.update(update);
                       _fetchPostData();
                     },
                     isSaved,
                   ),
-
                   _buildAction(
                     Icons.remove_red_eye_outlined,
                     views.toString(),
-                        () {}, // Görüntüleme pasif; sadece sayıyı gösteriyor
+                    () {}, // Görüntüleme pasif; sadece sayıyı gösteriyor
                     false,
                   ),
                 ],
@@ -282,9 +291,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   return Card(
                     elevation: 2,
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -294,41 +305,59 @@ class _PostDetailPageState extends State<PostDetailPage> {
                               Row(
                                 children: [
                                   Icon(
-                                    [Icons.lightbulb, Icons.build, Icons.check_circle][i],
-                                    color: reached ? Colors.orange : Colors.grey.shade300,
+                                    [
+                                      Icons.lightbulb,
+                                      Icons.build,
+                                      Icons.check_circle
+                                    ][i],
+                                    color: reached
+                                        ? Colors.orange
+                                        : Colors.grey.shade300,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    reached ? stageTitles[i] : 'Henüz bu aşamaya geçilmedi',
+                                    reached
+                                        ? stageTitles[i]
+                                        : 'Henüz bu aşamaya geçilmedi',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: reached ? Colors.black : Colors.grey,
+                                      color:
+                                          reached ? Colors.black : Colors.grey,
                                     ),
                                   ),
                                 ],
                               ),
                               if (isOwner && reached)
                                 IconButton(
-                                  icon: const Icon(Icons.edit, size: 20, color: Colors.orange),
+                                  icon: const Icon(Icons.edit,
+                                      size: 20, color: Colors.orange),
                                   onPressed: () async {
                                     final newNote = await showDialog<String>(
                                       context: context,
                                       builder: (context) {
-                                        final controller = TextEditingController(text: stepNoteControllers[i].text);
+                                        final controller =
+                                            TextEditingController(
+                                                text: stepNoteControllers[i]
+                                                    .text);
                                         return AlertDialog(
-                                          title: Text('${stageTitles[i]} Notunu Düzenle'),
+                                          title: Text(
+                                              '${stageTitles[i]} Notunu Düzenle'),
                                           content: TextField(
                                             controller: controller,
                                             maxLines: null,
-                                            decoration: const InputDecoration(hintText: 'Notunuzu girin...'),
+                                            decoration: const InputDecoration(
+                                                hintText: 'Notunuzu girin...'),
                                           ),
                                           actions: [
                                             TextButton(
-                                              onPressed: () => Navigator.pop(context),
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
                                               child: const Text('İptal'),
                                             ),
                                             TextButton(
-                                              onPressed: () => Navigator.pop(context, controller.text.trim()),
+                                              onPressed: () => Navigator.pop(
+                                                  context,
+                                                  controller.text.trim()),
                                               child: const Text('Kaydet'),
                                             ),
                                           ],
@@ -340,10 +369,16 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                       final field = 'step${i + 1}Note';
                                       await postRef.update({
                                         field: newNote,
-                                        'progressStep': newNote.isEmpty ? i : (i + 1 > 2 ? 3 : i + 1),
+                                        'progressStep': newNote.isEmpty
+                                            ? i
+                                            : (i + 1 > 2 ? 3 : i + 1),
                                       });
                                       _fetchPostData();
-                                      setState(() => widget.post['progressStep'] = newNote.isEmpty ? i : (i + 1 > 2 ? 3 : i + 1));
+                                      setState(() =>
+                                          widget.post['progressStep'] =
+                                              newNote.isEmpty
+                                                  ? i
+                                                  : (i + 1 > 2 ? 3 : i + 1));
                                     }
                                   },
                                 ),
@@ -364,7 +399,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 }),
               ),
               const Divider(height: 32),
-              const Text("Yorumlar", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text("Yorumlar",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               ListView.separated(
                 shrinkWrap: true,
@@ -375,17 +411,23 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   final c = comments[index];
                   final authorId = c['authorId'] ?? '';
                   final likedBy = List<String>.from(c['likedBy'] ?? []);
-                  final isLiked = currentUserId != null && likedBy.contains(currentUserId);
+                  final isLiked =
+                      currentUserId != null && likedBy.contains(currentUserId);
                   final timestamp = c['date'] as Timestamp?;
-                  final dateStr = timestamp != null ? timeAgo(timestamp.toDate()) : '';
+                  final dateStr =
+                      timestamp != null ? timeAgo(timestamp.toDate()) : '';
 
                   return FutureBuilder<DocumentSnapshot>(
-                    future: FirebaseFirestore.instance.collection('users').doc(authorId).get(),
+                    future: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(authorId)
+                        .get(),
                     builder: (context, snapshot) {
-                      String photoUrl = c['authorPhotoUrl'] ?? '';
+                      String photoUrl = '';
                       if (snapshot.hasData && snapshot.data!.exists) {
-                        final userData = snapshot.data!.data() as Map<String, dynamic>;
-                        photoUrl = userData['photoUrl'] ?? photoUrl;
+                        final userData =
+                            snapshot.data!.data() as Map<String, dynamic>;
+                        photoUrl = userData['photoUrl'] ?? '';
                       }
 
                       return Container(
@@ -400,25 +442,34 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             Row(
                               children: [
                                 CircleAvatar(
-                                  radius: 18,
-                                  backgroundImage: photoUrl.startsWith('assets/')
+                                  radius: 22,
+                                  backgroundImage: photoUrl
+                                          .startsWith('assets/')
                                       ? AssetImage(photoUrl) as ImageProvider
-                                      : NetworkImage(photoUrl),
+                                      : (photoUrl.isNotEmpty
+                                          ? NetworkImage(photoUrl)
+                                          : const AssetImage(
+                                                  'assets/avatar0.png')
+                                              as ImageProvider),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         c['authorName'] ?? 'Kullanıcı',
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       Text(
                                         dateStr,
-                                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                        style: const TextStyle(
+                                            fontSize: 11, color: Colors.grey),
                                       ),
                                     ],
                                   ),
@@ -428,23 +479,28 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             const SizedBox(height: 8),
                             Text(
                               c['text'] ?? '',
-                              style: const TextStyle(fontSize: 14, color: Colors.black87),
+                              style: const TextStyle(
+                                  fontSize: 14, color: Colors.black87),
                             ),
                             const SizedBox(height: 8),
                             Align(
                               alignment: Alignment.bottomRight,
                               child: GestureDetector(
-                                onTap: () => _toggleCommentLike(c['id'], likedBy),
+                                onTap: () =>
+                                    _toggleCommentLike(c['id'], likedBy),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
-                                      isLiked ? Icons.favorite : Icons.favorite_border,
+                                      isLiked
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
                                       color: isLiked ? Colors.red : Colors.grey,
                                       size: 16,
                                     ),
                                     const SizedBox(width: 4),
-                                    Text('${likedBy.length}', style: const TextStyle(fontSize: 12)),
+                                    Text('${likedBy.length}',
+                                        style: const TextStyle(fontSize: 12)),
                                   ],
                                 ),
                               ),
@@ -463,7 +519,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
     );
   }
 
-  Widget _buildAction(IconData icon, String label, VoidCallback onTap, [bool active = false]) {
+  Widget _buildAction(IconData icon, String label, VoidCallback onTap,
+      [bool active = false]) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -501,6 +558,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         return Icons.category;
     }
   }
+
   IconData _getStepIcon(int index) {
     switch (index) {
       case 0:
@@ -513,9 +571,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
         return Icons.help_outline;
     }
   }
-
 }
 
 extension StringExtension on String {
-  String capitalize() => isEmpty ? '' : this[0].toUpperCase() + substring(1).toLowerCase();
+  String capitalize() =>
+      isEmpty ? '' : this[0].toUpperCase() + substring(1).toLowerCase();
 }
