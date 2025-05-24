@@ -1,12 +1,8 @@
-import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:elestir_gelistir/PostCard.dart';
 import 'package:elestir_gelistir/PostWriteCard.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
-
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -16,70 +12,77 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  /* --------------------------- SABİT VERİ ---------------------------- */
-  final _scrollCtl = ScrollController();
-  final _cats = [
-    'Tümü','Eğitim','Spor','Tamirat','Araç Bakım',
-    'Sağlık','Teknoloji','Kişisel Gelişim','Sanat','Yazılım',
-  ];
-  String _selected = 'Tümü';
+  final ScrollController _scrollController = ScrollController();
+  final PageStorageBucket _bucket = PageStorageBucket(); // 👈 doğru yerde
+  final PageStorageKey _pageKey = PageStorageKey("postListScroll");
 
-  /* --------------------------- POST STATE ---------------------------- */
   final List<DocumentSnapshot> _posts = [];
+  final List<String> _cats = [
+    'Tümü', 'Eğitim', 'Spor', 'Tamirat', 'Araç Bakım',
+    'Sağlık', 'Teknoloji', 'Kişisel Gelişim', 'Sanat', 'Yazılım'
+  ];
+
+  String _selected = 'Tümü';
   DocumentSnapshot? _lastDoc;
-  bool _loading = false;            // şu an fetch ediliyor mu?
-  bool _hasMore = true;             // başka sayfa kaldı mı?
-  static const _pageSize = 10;
+  bool _loading = false;
+  bool _hasMore = true;
+  static const int _pageSize = 10;
 
   @override
   void initState() {
     super.initState();
-    _scrollCtl.addListener(_onScroll);
-    _fetchFirstPage();              // ilk 10 post
+    _scrollController.addListener(_onScroll);
+    _fetchFirstPage();
   }
 
   @override
   void dispose() {
-    _scrollCtl.removeListener(_onScroll);
-    _scrollCtl.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  /* ---------------------- SCROLL LİSTENER ---------------------------- */
   void _onScroll() {
-    if (_scrollCtl.position.pixels >=
-        _scrollCtl.position.maxScrollExtent - 200 && // dipten 200px önce
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200 &&
         !_loading &&
         _hasMore) {
       _fetchNextPage();
     }
   }
 
-  /* -------------------------- FETCH LOGİC --------------------------- */
-  Query _baseQuery() => FirebaseFirestore.instance
-      .collection('posts')
-      .where('category', isEqualTo: _selected == 'Tümü' ? null : _selected)
-      .orderBy('date', descending: true);
+  Query _baseQuery() {
+    final base = FirebaseFirestore.instance
+        .collection('posts')
+        .orderBy('date', descending: true);
+
+    if (_selected != 'Tümü') {
+      return base.where('category', isEqualTo: _selected);
+    }
+    return base;
+  }
 
   Future<void> _fetchFirstPage() async {
-    setState(() { _loading = true; _posts.clear(); _lastDoc = null; _hasMore = true; });
+    setState(() {
+      _loading = true;
+      _posts.clear();
+      _lastDoc = null;
+      _hasMore = true;
+    });
+
     final snap = await _baseQuery().limit(_pageSize).get();
-    if (mounted) {
-      setState(() {
-        _posts.addAll(snap.docs);
-        _lastDoc = snap.docs.isNotEmpty ? snap.docs.last : null;
-        _hasMore = snap.docs.length == _pageSize;
-        _loading = false;
-      });
-    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _posts.addAll(snap.docs);
+      _lastDoc = snap.docs.isNotEmpty ? snap.docs.last : null;
+      _hasMore = snap.docs.length == _pageSize;
+      _loading = false;
+    });
   }
 
   Future<void> _fetchNextPage() async {
     if (_lastDoc == null || _loading) return;
-
-    final double beforeOffset = _scrollCtl.offset;
-    final double beforeMax = _scrollCtl.position.maxScrollExtent;
-
     setState(() => _loading = true);
 
     final snap = await _baseQuery()
@@ -91,27 +94,12 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {
       _posts.addAll(snap.docs);
-      if (snap.docs.isNotEmpty) _lastDoc = snap.docs.last;
+      _lastDoc = snap.docs.isNotEmpty ? snap.docs.last : _lastDoc;
       _hasMore = snap.docs.length == _pageSize;
       _loading = false;
     });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final double newMax = _scrollCtl.position.maxScrollExtent;
-      final double delta = newMax - beforeMax;
-
-      final bool userStillScrollingDown =
-          _scrollCtl.position.userScrollDirection == ScrollDirection.reverse;
-
-      if (delta > 0 && userStillScrollingDown) {
-        _scrollCtl.jumpTo(beforeOffset + delta);
-      }
-    });
   }
 
-
-
-  /* -------------------------- UI ------------------------------------ */
   @override
   Widget build(BuildContext context) {
     final primary = Colors.orange.shade600;
@@ -122,108 +110,125 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: primary,
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          /* --------------------- KATEGORİ CHİP BAR -------------------- */
-          SizedBox(
-            height: 50,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              itemCount: _cats.length,
-              itemBuilder: (_, i) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: ChoiceChip(
-                  label: Text(_cats[i]),
-                  selected: _selected == _cats[i],
-                  selectedColor: primary,
-                  onSelected: (_) {
-                    if (_selected != _cats[i]) {
-                      _selected = _cats[i];
-                      _fetchFirstPage(); // kategori değişince liste sıfırla
+      body: PageStorage(
+        bucket: _bucket,
+        child: Column(
+          children: [
+            // Kategori Barı
+            SizedBox(
+              height: 50,
+              child: ListView.builder(
+                cacheExtent: 1000,
+                scrollDirection: Axis.horizontal,
+                itemCount: _cats.length,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: ChoiceChip(
+                      label: Text(_cats[index]),
+                      selected: _selected == _cats[index],
+                      selectedColor: primary,
+                      onSelected: (_) {
+                        if (_selected != _cats[index]) {
+                          setState(() {
+                            _selected = _cats[index];
+                          });
+
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _scrollController.animateTo(
+                              0,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          });
+
+                          _fetchFirstPage();
+                        }
+                      },
+
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // Post Listesi
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _fetchFirstPage,
+                child: ListView.builder(
+                  key: _pageKey,
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: _posts.length + (_hasMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == _posts.length) {
+                      return const SizedBox(
+                        height: 80,
+                        child: Center(child: CircularProgressIndicator()),
+                      );
                     }
+                    final data = _posts[index].data() as Map<String, dynamic>;
+                    data['id'] = _posts[index].id;
+                    return PostCard(post: data);
                   },
                 ),
               ),
             ),
-          ),
+          ],
+        ),
+      ),
 
-          /* ----------------------- POST LİSTESİ ----------------------- */
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _fetchFirstPage,
-              child: ListView.builder(
-                key: const PageStorageKey('postListScroll'),   // 👈 konum saklanır
-                controller: _scrollCtl,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: _posts.length + (_hasMore ? 1 : 0),
-                itemBuilder: (_, i) {
-                  if (i == _posts.length) {
-                    // dipte yükleniyor göstergesi
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                  final doc = _posts[i];
-                  final data = doc.data() as Map<String, dynamic>;
-                  data['id'] = doc.id;
-                  return PostCard(post: data);
+      // Yeni Post Ekle FAB
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: primary,
+        child: const Icon(Icons.add),
+        onPressed: () {
+          showModalBottomSheet(
+            isScrollControlled: true,
+            context: context,
+            builder: (context) => Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: PostWrite(
+                controller: TextEditingController(),
+                onPost: (text, category) async {
+                  final user = FirebaseAuth.instance.currentUser;
+                  if (user == null) return;
+
+                  final userDoc = await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(user.uid)
+                      .get();
+
+                  await FirebaseFirestore.instance.collection('posts').add({
+                    'authorId': user.uid,
+                    'authorName': userDoc['username'] ?? user.email,
+                    'authorPhotoUrl': userDoc['photoUrl'] ?? '',
+                    'content': text,
+                    'category': category,
+                    'dailyPick': false,
+                    'likesCount': 0,
+                    'likedBy': [],
+                    'savedBy': [],
+                    'views': 0,
+                    'progressStep': 0,
+                    'step1Note': '',
+                    'step2Note': '',
+                    'step3Note': '',
+                    'date': FieldValue.serverTimestamp(),
+                  });
+
+                  Navigator.pop(context);
+                  _fetchFirstPage();
                 },
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
-
-      /* ------------------------ POST YAZ FAB ------------------------ */
-      floatingActionButton: FloatingActionButton(
-      backgroundColor: primary,
-      child: const Icon(Icons.add_circle_outline),
-      onPressed: () => showModalBottomSheet(
-        isScrollControlled: true,
-        context: context,
-        backgroundColor: Colors.white,
-        builder: (_) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: PostWrite(          //  ← PostWrite → PostWriteCard
-            controller: TextEditingController(),
-            onPost: (text, category) async {
-              final user = FirebaseAuth.instance.currentUser;
-              if (user == null) return;
-
-              final snap = await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(user.uid)
-                  .get();
-
-              await FirebaseFirestore.instance.collection('posts').add({
-                'authorId': user.uid,
-                'authorName': snap['username'] ?? user.email,
-                'authorPhotoUrl': snap['photoUrl'] ?? '',
-                'content': text,
-                'dailyPick': false,
-                'category': category,
-                'likesCount': 0,
-                'likedBy': [],
-                'savedBy': [],
-                'views': 0,
-                'progressStep': 0,
-                'step1Note': '',
-                'step2Note': '',
-                'step3Note': '',
-                'date': FieldValue.serverTimestamp(),
-              });
-
-              Navigator.pop(context);   // sayfadan çık
-              _fetchFirstPage();        // listeyi güncelle
-            },
-          ),
-        ),
-      ),
-    ),
     );
   }
 }

@@ -40,6 +40,7 @@ class _MainPageState extends State<MainPage> {
         children: _pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.orange.shade600,

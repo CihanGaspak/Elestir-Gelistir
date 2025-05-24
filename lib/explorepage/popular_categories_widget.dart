@@ -11,7 +11,7 @@ class PopularCategoriesWidget extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('posts').snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const CircularProgressIndicator();
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
         final docs = snapshot.data!.docs;
         if (docs.isEmpty) return const SizedBox.shrink();
@@ -26,24 +26,41 @@ class PopularCategoriesWidget extends StatelessWidget {
         final sorted = categoryCount.entries.toList()
           ..sort((a, b) => b.value.compareTo(a.value));
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "⭐ Popüler Kategoriler",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryColor),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: sorted.take(5).map((e) => Chip(
-                label: Text(e.key),
-                backgroundColor: primaryColor,
-                labelStyle: const TextStyle(color: Colors.white),
-              )).toList(),
-            ),
-          ],
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "⭐ Popüler Kategoriler",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryColor),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: sorted.take(5).map((entry) {
+                  return GestureDetector(
+                    onTap: () {
+                      // İstersen kategoriye göre filtrelenmiş sayfaya yönlendirme ekleyebilirsin
+                    },
+                    child: Chip(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      backgroundColor: primaryColor.withOpacity(0.15),
+                      avatar: const Icon(Icons.local_offer, size: 18, color: Colors.deepOrange),
+                      label: Text(
+                        '${entry.key} (${entry.value})',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
         );
       },
     );

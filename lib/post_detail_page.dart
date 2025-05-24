@@ -110,10 +110,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
     final post = widget.post;
     final authorId = post['authorId'] ?? '';
     final isOwner = currentUserId == authorId;
-    final author = post['authorName'] ?? 'Kullanıcı';
     final content = post['content']?.toString().trim() ?? '';
     final category = post['category']?.toString().capitalize() ?? '';
-    final photoUrl = post['authorPhotoUrl'] ?? '';
     final step = post['progressStep'] ?? 0;
     final timestamp = post['date'] as Timestamp?;
 
@@ -132,77 +130,81 @@ class _PostDetailPageState extends State<PostDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundImage: photoUrl.startsWith('assets/')
-                        ? AssetImage(photoUrl)
-                        : NetworkImage(photoUrl) as ImageProvider,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(author,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16)),
-                        if (timestamp != null)
-                          Text(
-                            timeAgo(timestamp.toDate()),
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      children: [
-                        // Aşama ikonları
-                        Row(
-                          children: List.generate(3, (i) {
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
-                              child: Icon(
-                                _getStepIcon(i),
-                                size: 20,
-                                color: i <= step
-                                    ? Colors.orange
-                                    : Colors.grey.shade300,
-                              ),
-                            );
-                          }),
-                        ),
-                        const SizedBox(height: 8),
-                        // Kategori
-                        Row(
+              FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance.collection('users').doc(authorId).get(),
+                builder: (context, snapshot) {
+                  String authorName = 'Kullanıcı';
+                  String photoUrl = 'assets/avatar0.png';
+
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    final userData = snapshot.data!.data() as Map<String, dynamic>;
+                    authorName = userData['username'] ?? 'Kullanıcı';
+                    photoUrl = userData['photoUrl'] ?? 'assets/avatar0.png';
+                  }
+
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundImage: photoUrl.startsWith('assets/')
+                            ? AssetImage(photoUrl) as ImageProvider
+                            : NetworkImage(photoUrl),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(_getCategoryIcon(category),
-                                color: Colors.black, size: 20),
-                            const SizedBox(width: 4),
-                            Text(
-                              category,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.black,
+                            Text(authorName,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16)),
+                            if (timestamp != null)
+                              Text(
+                                timeAgo(timestamp.toDate()),
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.grey),
                               ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: List.generate(3, (i) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                                  child: Icon(
+                                    _getStepIcon(i),
+                                    size: 20,
+                                    color: i <= step ? Colors.orange : Colors.grey.shade300,
+                                  ),
+                                );
+                              }),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(_getCategoryIcon(category), color: Colors.black, size: 20),
+                                const SizedBox(width: 4),
+                                Text(
+                                  category,
+                                  style: const TextStyle(fontSize: 12, color: Colors.black),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                ],
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 12),
               Text(content, style: const TextStyle(fontSize: 16, height: 1.4)),
