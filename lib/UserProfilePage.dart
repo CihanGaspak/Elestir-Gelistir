@@ -50,14 +50,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final targetFollowing = List<String>.from(data['following'] ?? []);
 
     setState(() {
-      name         = data['username'] ?? 'Kullanıcı';
-      _photoUrl    = data['photoUrl'] ?? '';
+      name = data['username'] ?? 'Kullanıcı';
+      _photoUrl = data['photoUrl'] ?? '';
       followersList = targetFollowers;
       followingList = targetFollowing;
-      usefulness   = raw is num ? raw.toDouble() : 0.0;
-      createdAt    = (data['joinedAt'] as Timestamp?)?.toDate();
+      usefulness = raw is num ? raw.toDouble() : 0.0;
+      createdAt = (data['joinedAt'] as Timestamp?)?.toDate();
       _isFollowing = currentFollowing.contains(widget.userId);
-      followsMe    = targetFollowers.contains(currentUserId);
+      followsMe = targetFollowers.contains(currentUserId);
       _userInfoLoaded = true;
     });
   }
@@ -74,8 +74,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
       return m;
     }).where(filter).toList();
 
-    return posts.isEmpty ? const Center(child: Text("Gönderi yok.")) :
-    ListView.builder(
+    return posts.isEmpty
+        ? const Center(child: Text("Gönderi yok."))
+        : ListView.builder(
       itemCount: posts.length,
       itemBuilder: (_, i) => PostCard(post: posts[i]),
     );
@@ -140,7 +141,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text(name,
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -150,38 +153,49 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       children: [
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _isFollowing ? Colors.orange.shade50 : Colors.white,
+                            backgroundColor: _isFollowing
+                                ? Colors.orange.shade50
+                                : Colors.white,
                             foregroundColor: Colors.black87,
-                            side: BorderSide(color: _isFollowing ? Colors.amber : Colors.orange.shade600, width: 2),
+                            side: BorderSide(
+                                color: _isFollowing
+                                    ? Colors.amber
+                                    : Colors.orange.shade600,
+                                width: 2),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 8),
                           ),
                           onPressed: () async {
+                            final currentUserId =
+                                FirebaseAuth.instance.currentUser?.uid;
+                            if (currentUserId == null) return;
+
                             setState(() {
                               _isFollowing = !_isFollowing;
-                              if (_isFollowing) {
-                                followersList.add(currentUserId!);
-                              } else {
-                                followersList.remove(currentUserId);
-                              }
                             });
+
+                            final usersRef = FirebaseFirestore.instance.collection('users');
+
                             if (_isFollowing) {
-                              await FirebaseFirestore.instance.collection('users').doc(currentUserId).update({
+                              await usersRef.doc(currentUserId).update({
                                 'following': FieldValue.arrayUnion([widget.userId])
                               });
-                              await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
+                              await usersRef.doc(widget.userId).update({
                                 'followers': FieldValue.arrayUnion([currentUserId])
                               });
                             } else {
-                              await FirebaseFirestore.instance.collection('users').doc(currentUserId).update({
+                              await usersRef.doc(currentUserId).update({
                                 'following': FieldValue.arrayRemove([widget.userId])
                               });
-                              await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
+                              await usersRef.doc(widget.userId).update({
                                 'followers': FieldValue.arrayRemove([currentUserId])
                               });
                             }
+
+                            await _loadUserInfo(); // 🔁 Anlık yenile
                           },
                           child: Text(_isFollowing ? "Takipten Çık" : "Takip Et"),
                         ),
@@ -196,7 +210,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
               child: Text(
                 bio,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.black54, height: 1.4),
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.black54,
+                    height: 1.4),
               ),
             ),
             const SizedBox(height: 12),
@@ -204,8 +222,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
               stream: _postsStream,
               builder: (context, snap) {
                 final docs = snap.hasData ? snap.data!.docs : [];
-                final supportCnt = docs.where((d) => (d['progressStep'] ?? 0) < 3).length;
-                final solutionCnt = docs.where((d) => (d['progressStep'] ?? 0) == 3).length;
+                final supportCnt =
+                    docs.where((d) => (d['progressStep'] ?? 0) < 3).length;
+                final solutionCnt =
+                    docs.where((d) => (d['progressStep'] ?? 0) == 3).length;
                 totalPosts = docs.length;
 
                 return Expanded(
@@ -219,9 +239,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => FollowerListPage(userId: widget.userId, showFollowers: true),
+                                  builder: (_) => FollowerListPage(
+                                      userId: widget.userId,
+                                      showFollowers: true),
                                 ),
-                              );
+                              ).then((_) => _loadUserInfo()); // 🔁 geri dönünce yenile
                             },
                             child: _stat('Takipçi', followersList.length),
                           ),
@@ -230,13 +252,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => FollowerListPage(userId: widget.userId, showFollowers: false),
+                                  builder: (_) => FollowerListPage(
+                                      userId: widget.userId,
+                                      showFollowers: false),
                                 ),
-                              );
+                              ).then((_) => _loadUserInfo()); // 🔁
                             },
                             child: _stat('Takip', followingList.length),
                           ),
-                          _stat('Faydalılık', '${usefulness.toStringAsFixed(1)}/10'),
+                          _stat('Faydalılık',
+                              '${usefulness.toStringAsFixed(1)}/10'),
                           _stat('Gönderi', totalPosts),
                         ],
                       ),
@@ -246,15 +271,21 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         unselectedLabelColor: Colors.grey,
                         indicatorColor: primaryColor,
                         tabs: [
-                          Tab(icon: const Icon(Icons.timelapse), text: 'Devam ($supportCnt)'),
-                          Tab(icon: const Icon(Icons.check_circle), text: 'Bitti ($solutionCnt)'),
+                          Tab(
+                              icon: const Icon(Icons.timelapse),
+                              text: 'Devam ($supportCnt)'),
+                          Tab(
+                              icon: const Icon(Icons.check_circle),
+                              text: 'Bitti ($solutionCnt)'),
                         ],
                       ),
                       Expanded(
                         child: TabBarView(
                           children: [
-                            _buildPostTab(snap, (p) => (p['progressStep'] ?? 0) < 3),
-                            _buildPostTab(snap, (p) => (p['progressStep'] ?? 0) == 3),
+                            _buildPostTab(
+                                snap, (p) => (p['progressStep'] ?? 0) < 3),
+                            _buildPostTab(
+                                snap, (p) => (p['progressStep'] ?? 0) == 3),
                           ],
                         ),
                       ),
@@ -271,7 +302,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Widget _stat(String title, dynamic value) => Column(
     children: [
-      Text('$value', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+      Text('$value',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
       Text(title, style: const TextStyle(color: Colors.grey)),
     ],
   );
