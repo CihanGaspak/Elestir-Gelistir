@@ -85,7 +85,7 @@ class _CommentSheetState extends State<CommentSheet> {
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: FractionallySizedBox(
-          heightFactor: .80,
+          heightFactor: .60,
           child: Column(
             children: [
               const SizedBox(height: 8),

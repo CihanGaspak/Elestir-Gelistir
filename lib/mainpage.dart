@@ -1,6 +1,6 @@
 import 'package:elestir_gelistir/elestir-AI/ai_page.dart';
 import 'package:elestir_gelistir/homepage.dart';
-import 'package:elestir_gelistir/profilpage.dart';
+import 'package:elestir_gelistir/ProfilePage/profilpage.dart';
 import 'package:flutter/material.dart';
 
 import 'explorepage/explore.dart';

@@ -133,13 +133,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
               FutureBuilder<DocumentSnapshot>(
                 future: FirebaseFirestore.instance.collection('users').doc(authorId).get(),
                 builder: (context, snapshot) {
-                  String authorName = 'Kullanıcı';
+                  String displayName = 'Kullanıcı';
                   String photoUrl = 'assets/avatar0.png';
 
                   if (snapshot.hasData && snapshot.data!.exists) {
                     final userData = snapshot.data!.data() as Map<String, dynamic>;
-                    authorName = userData['username'] ?? 'Kullanıcı';
+                    displayName = userData['username'] ?? 'Kullanıcı';
                     photoUrl = userData['photoUrl'] ?? 'assets/avatar0.png';
+
                   }
 
                   return Row(
@@ -156,7 +157,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(authorName,
+                            Text(displayName,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 16)),
                             if (timestamp != null)
@@ -426,10 +427,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         .get(),
                     builder: (context, snapshot) {
                       String photoUrl = '';
+                      String displayName = 'Kullanıcı';
                       if (snapshot.hasData && snapshot.data!.exists) {
                         final userData =
                             snapshot.data!.data() as Map<String, dynamic>;
                         photoUrl = userData['photoUrl'] ?? '';
+                        displayName = userData['username'] ?? 'Kullanıcı';
                       }
 
                       return Container(
@@ -461,7 +464,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        c['authorName'] ?? 'Kullanıcı',
+                                        displayName ?? 'Kullanıcı',
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 14),

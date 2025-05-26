@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../UserProfilePage.dart';
+
 class SearchUserWidget extends StatefulWidget {
   final ValueChanged<String> onClose;
   const SearchUserWidget({super.key, required this.onClose});
@@ -72,7 +74,7 @@ class _SearchUserWidgetState extends State<SearchUserWidget> {
             border: InputBorder.none,
             suffixIcon: _query.isNotEmpty
                 ? IconButton(
-              icon: Icon(Icons.clear),
+              icon: Icon(Icons.clear, color: Colors.red,),
               onPressed: () {
                 _controller.clear();
                 setState(() => _query = "");
@@ -148,20 +150,41 @@ class _SearchUserWidgetState extends State<SearchUserWidget> {
             final username = data['username'] ?? "Kullanıcı";
             final photo = data['photoUrl'] ?? "assets/default_avatar.png";
 
-            return ListTile(
-              leading: CircleAvatar(
-                backgroundImage: photo.startsWith("assets/")
-                    ? AssetImage(photo) as ImageProvider
-                    : NetworkImage(photo),
-              ),
-              title: Text(username),
-              onTap: () {
-                _updateHistory(username);
-                // Profil detayına yönlendirme yapılabilir
-              },
+            return Column(
+              children: [
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  leading: CircleAvatar(
+                    radius: 24,
+                    backgroundImage: photo.startsWith("assets/")
+                        ? AssetImage(photo) as ImageProvider
+                        : NetworkImage(photo),
+                  ),
+                  title: Text(username),
+                  onTap: () {
+                    _updateHistory(username);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => UserProfilePage(userId: doc.id)),
+                    );
+                  },
+                ),
+                // Divider fotonun alt hizasından başlasın
+                const Padding(
+                  padding: EdgeInsets.only(left: 16, right: 16),
+                  child: Divider(
+                    color: Color(0xFFDDDDDD), // açık gri
+                    thickness: 1,
+                    height: 0,
+                  ),
+                ),
+              ],
             );
           }).toList(),
         );
+
+
       },
     );
   }

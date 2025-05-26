@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'PostCard.dart';
-import 'settingspage.dart';
+import '../PostCard.dart';
+import '../settingspage.dart';
+import 'follower_list_page.dart';
+
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -55,12 +57,19 @@ class _ProfilePageState extends State<ProfilePage> {
     if (user == null) return;
     final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     if (!mounted) return;
+
+    final data = doc.data() as Map<String, dynamic>;
+
     setState(() {
-      name     = doc['username'] ?? 'Kullanıcı';
-      username = "@${user.email?.split('@').first}";
-      _photoUrl = doc['photoUrl'] ?? '';
+      name        = data['username'] ?? 'Kullanıcı';
+      username    = "@${user.email?.split('@').first}";
+      _photoUrl   = data['photoUrl'] ?? '';
+      followers   = (data['followers'] as List<dynamic>? ?? []).length;
+      following   = (data['following'] as List<dynamic>? ?? []).length;
+      helpfulness = (data['usefulness'] ?? 0).toDouble();
     });
   }
+
 
   Widget _buildPostTab(
       AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snap,
@@ -128,11 +137,26 @@ class _ProfilePageState extends State<ProfilePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _stat('Takipçi', followers),
-                _stat('Takip', following),
+                _stat('Takipçi', followers, onTap: () {
+                  final uid = FirebaseAuth.instance.currentUser?.uid;
+                  if (uid != null) {
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => FollowerListPage(userId: uid, showFollowers: true),
+                    ));
+                  }
+                }),
+                _stat('Takip', following, onTap: () {
+                  final uid = FirebaseAuth.instance.currentUser?.uid;
+                  if (uid != null) {
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => FollowerListPage(userId: uid, showFollowers: false),
+                    ));
+                  }
+                }),
                 _stat('Faydalılık', '${helpfulness.toStringAsFixed(1)}/10'),
               ],
             ),
+
             const SizedBox(height: 8),
 
             Expanded(
@@ -203,10 +227,14 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _stat(String title, dynamic value) => Column(
-    children: [
-      Text('$value', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-      Text(title, style: const TextStyle(color: Colors.grey)),
-    ],
+  Widget _stat(String title, dynamic value, {VoidCallback? onTap}) => InkWell(
+    onTap: onTap,
+    child: Column(
+      children: [
+        Text('$value', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(title, style: const TextStyle(color: Colors.grey)),
+      ],
+    ),
   );
+
 }

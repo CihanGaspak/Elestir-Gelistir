@@ -8,6 +8,20 @@ class PopularCategoriesWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color primaryColor = Colors.orange.shade600;
 
+    // 🎯 Kategoriye özel ikonlar
+    final Map<String, IconData> categoryIcons = {
+      "Eğitim": Icons.school,
+      "Spor": Icons.fitness_center,
+      "Tamirat": Icons.build,
+      "Araç Bakım": Icons.car_repair,
+      "Sağlık": Icons.health_and_safety,
+      "Teknoloji": Icons.computer,
+      "Kişisel Gelişim": Icons.self_improvement,
+      "Sanat": Icons.brush,
+      "Yazılım": Icons.code,
+      "Diğer": Icons.local_offer,
+    };
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('posts').snapshots(),
       builder: (context, snapshot) {
@@ -40,16 +54,17 @@ class PopularCategoriesWidget extends StatelessWidget {
                 spacing: 10,
                 runSpacing: 10,
                 children: sorted.take(5).map((entry) {
+                  final icon = categoryIcons[entry.key] ?? Icons.local_offer;
                   return GestureDetector(
                     onTap: () {
-                      // İstersen kategoriye göre filtrelenmiş sayfaya yönlendirme ekleyebilirsin
+                      // kategoriye göre filtreleme yapılabilir
                     },
                     child: Chip(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                       backgroundColor: primaryColor.withOpacity(0.15),
-                      avatar: const Icon(Icons.local_offer, size: 18, color: Colors.deepOrange),
+                      avatar: Icon(icon, size: 18, color: Colors.deepOrange),
                       label: Text(
                         '${entry.key} (${entry.value})',
                         style: const TextStyle(fontWeight: FontWeight.bold),

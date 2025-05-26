@@ -67,6 +67,8 @@ class _LoginPageState extends State<LoginPage> {
         'photoUrl' : 'assets/avatars/avatar1.png',
         'joinedAt' : Timestamp.now(),
         'usefulness': 0.0, // İlk kayıt 0.0 olabilir, istersen 5.0 default koyabilirsin.
+        'followers': [],
+        'following': [],
       });
 
       _alert('Kayıt başarılı! Giriş yapabilirsiniz.', ok: true);
