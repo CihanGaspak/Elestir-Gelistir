@@ -143,11 +143,11 @@ class _AiPageState extends State<AiPage> {
         centerTitle: true,
         backgroundColor: primaryColor,
       ),
-      drawer:Drawer(
+      drawer: Drawer(
         backgroundColor: Colors.white,
         child: Column(
           children: [
-            // 🟠 DrawerHeader - daha sade ve sıkı
+            // 🟠 DrawerHeader - Kullanıcı Bilgisi
             DrawerHeader(
               decoration: BoxDecoration(color: primaryColor),
               margin: EdgeInsets.zero,
@@ -188,50 +188,13 @@ class _AiPageState extends State<AiPage> {
               ),
             ),
 
-            // 🔽 Alt kısım scroll edilebilir
+            // 🔽 Alt İçerik - Scrollable
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // 📊 İstatistik Kartları (2 sütunlu)
-                    GridView.count(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      crossAxisCount: 1, // satırda 1 kart
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 4 / 1.3, // geniş-kısa kart
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      children: [
-                        _buildStatCard(
-                          icon: Icons.category,
-                          label: 'En Çok Konuşulan',
-                          value: 'Yazılım',
-                          color: Colors.deepPurpleAccent,
-                        ),
-                        _buildStatCard(
-                          icon: Icons.access_time,
-                          label: 'Ortalama Uzunluk',
-                          value: '${getAverageMessageCount().toStringAsFixed(1)} mesaj',
-                          color: Colors.teal,
-                        ),
-                        _buildStatCard(
-                          icon: Icons.folder_copy_outlined,
-                          label: 'Son Sohbet',
-                          value: getLastChatDate(),
-                          color: Colors.blueGrey,
-                        ),
-                        _buildStatCard(
-                          icon: Icons.calendar_month,
-                          label: 'Haftalık Aktiflik',
-                          value: '3 sohbet',
-                          color: Colors.indigo,
-                        ),
-                      ],
-                    ),
-
-
-                    const SizedBox(height: 16),
 
                     // ➕ Yeni Sohbet Butonu
                     ElevatedButton.icon(
@@ -278,8 +241,6 @@ class _AiPageState extends State<AiPage> {
                         }
                       },
                     ),
-
-                    const SizedBox(height: 12),
 
                     // 📋 Sohbet Listesi
                     ListView.builder(
@@ -354,6 +315,45 @@ class _AiPageState extends State<AiPage> {
                         );
                       },
                     ),
+
+                    const Divider(height: 32, thickness: 1, color: Colors.black12),
+
+                    // 📊 İstatistik Kartları
+                    GridView.count(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      crossAxisCount: 1,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 4 / 1.3,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      children: [
+                        _buildStatCard(
+                          icon: Icons.category,
+                          label: 'En Çok Konuşulan',
+                          value: 'Yazılım',
+                          color: Colors.deepPurpleAccent,
+                        ),
+                        _buildStatCard(
+                          icon: Icons.access_time,
+                          label: 'Ortalama Uzunluk',
+                          value: '${getAverageMessageCount().toStringAsFixed(1)} mesaj',
+                          color: Colors.teal,
+                        ),
+                        _buildStatCard(
+                          icon: Icons.folder_copy_outlined,
+                          label: 'Son Sohbet',
+                          value: getLastChatDate(),
+                          color: Colors.blueGrey,
+                        ),
+                        _buildStatCard(
+                          icon: Icons.calendar_month,
+                          label: 'Haftalık Aktiflik',
+                          value: '3 sohbet',
+                          color: Colors.indigo,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8,),
                   ],
                 ),
               ),

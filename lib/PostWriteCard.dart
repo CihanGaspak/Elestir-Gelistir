@@ -5,8 +5,12 @@ import 'package:flutter/material.dart';
 class PostWrite extends StatefulWidget {
   final TextEditingController controller;
   final Future<void> Function(String text, String category) onPost;
-  const PostWrite({Key? key, required this.controller, required this.onPost})
-      : super(key: key);
+
+  const PostWrite({
+    Key? key,
+    required this.controller,
+    required this.onPost,
+  }) : super(key: key);
 
   @override
   State<PostWrite> createState() => _PostWriteState();
@@ -14,7 +18,7 @@ class PostWrite extends StatefulWidget {
 
 class _PostWriteState extends State<PostWrite> {
   static const _maxLen = 280;
-  int remaining = _maxLen;
+  int remaining = 280;
   bool isPosting = false;
   String selectedCategory = 'Eğitim';
   String? username, photoUrl;
@@ -35,14 +39,36 @@ class _PostWriteState extends State<PostWrite> {
   void initState() {
     super.initState();
     _loadUserInfo();
+    widget.controller.addListener(_updateRemaining);
+  }
+
+  @override
+  void didUpdateWidget(PostWrite oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_updateRemaining);
+      widget.controller.addListener(_updateRemaining);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_updateRemaining);
+    super.dispose();
+  }
+
+  void _updateRemaining() {
+    setState(() {
+      remaining = _maxLen - widget.controller.text.length;
+    });
   }
 
   Future<void> _loadUserInfo() async {
-    final u = FirebaseAuth.instance.currentUser;
-    if (u == null) return;
-    final snap = await FirebaseFirestore.instance.collection('users').doc(u.uid).get();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final snap = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     setState(() {
-      username = snap['username'] ?? u.email;
+      username = snap['username'] ?? user.email;
       photoUrl = snap['photoUrl'] ?? '';
     });
   }
@@ -58,7 +84,7 @@ class _PostWriteState extends State<PostWrite> {
       widget.controller.clear();
       remaining = _maxLen;
     });
-    Navigator.pop(context);
+    Navigator.maybePop(context);
   }
 
   @override
@@ -78,8 +104,7 @@ class _PostWriteState extends State<PostWrite> {
             maxHeight: MediaQuery.of(context).size.height * 0.5,
           ),
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(0),
-
+            padding: EdgeInsets.zero,
             child: Material(
               elevation: 4,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
@@ -109,35 +134,44 @@ class _PostWriteState extends State<PostWrite> {
                           Expanded(
                             child: Text(
                               username ?? 'Kullanıcı',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                           DropdownButton<String>(
                             value: selectedCategory,
-                            items: categories
-                                .map((cat) => DropdownMenuItem<String>(
-                              value: cat['name'] as String,
-                              child: Row(
-                                children: [
-                                  Icon(cat['icon'] as IconData, size: 18),
-                                  const SizedBox(width: 4),
-                                  Text(cat['name'] as String),
-                                ],
-                              ),
-                            ))
-                                .toList(),
-                            onChanged: (v) => setState(() => selectedCategory = v ?? selectedCategory),
+                            items: categories.map((cat) {
+                              return DropdownMenuItem<String>(
+                                value: cat['name'] as String,
+                                child: Row(
+                                  children: [
+                                    Icon(cat['icon'] as IconData, size: 18),
+                                    const SizedBox(width: 4),
+                                    Text(cat['name'] as String),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  selectedCategory = value;
+                                });
+                              }
+                            },
                             underline: const SizedBox(),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
                       TextField(
+                        key: const ValueKey('postTextField'),
                         controller: widget.controller,
                         minLines: 4,
                         maxLines: 6,
                         maxLength: _maxLen,
-                        onChanged: (_) => setState(() => remaining = _maxLen - widget.controller.text.length),
                         decoration: InputDecoration(
                           hintText: 'Ne düşünüyorsun?',
                           filled: true,
@@ -172,9 +206,11 @@ class _PostWriteState extends State<PostWrite> {
                             icon: const Icon(Icons.send, size: 16, color: Colors.white),
                             label: const Text('Gönder', style: TextStyle(color: Colors.white)),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                              canSend ? Colors.orange.shade600 : Colors.grey.shade400,
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                              backgroundColor: canSend
+                                  ? Colors.deepOrange
+                                  : Colors.grey.shade400,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),

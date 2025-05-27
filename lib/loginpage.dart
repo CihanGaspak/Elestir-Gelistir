@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'mainpage.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -32,6 +34,9 @@ class _LoginPageState extends State<LoginPage> {
         email: loginEmail.text.trim(),
         password: loginPassword.text.trim(),
       );
+      // 🔥 Token kaydet!
+      await saveDeviceToken();
+
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -71,6 +76,9 @@ class _LoginPageState extends State<LoginPage> {
         'following': [],
       });
 
+      // 📌 Hemen sonra token'ı kaydet
+      await saveDeviceToken();
+
       _alert('Kayıt başarılı! Giriş yapabilirsiniz.', ok: true);
       setState(() => showLogin = true);
     } on FirebaseAuthException catch (e) {
@@ -98,6 +106,23 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _validEmail(String e) =>
       RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(e);
+
+  Future<void> saveDeviceToken() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final token = await FirebaseMessaging.instance.getToken();
+    if (token != null) {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'fcmToken': token,
+      });
+
+      print("✅ FCM Token kaydedildi: $token");
+    } else {
+      print("❌ Token alınamadı.");
+    }
+  }
+
 
   //──────────────────────────────────────── UI
   @override

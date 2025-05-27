@@ -164,9 +164,12 @@ class _PostCardState extends State<PostCard> {
       future: FirebaseFirestore.instance.collection('users').doc(authorId).get(),
       builder: (context, snapshot) {
         String photoUrl = '';
+        String displayName = 'Kullanıcı';
+
         if (snapshot.hasData && snapshot.data!.data() != null) {
           final data = snapshot.data!.data() as Map<String, dynamic>;
           photoUrl = data['photoUrl'] ?? '';
+          displayName = data['username'] ?? 'Kullanıcı';
         }
 
         return Row(
@@ -182,8 +185,11 @@ class _PostCardState extends State<PostCard> {
                   : null,
               child: photoUrl.isEmpty
                   ? Text(
-                author.substring(0, 1).toUpperCase(),
-                style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                displayName.substring(0, 1).toUpperCase(),
+                style: const TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                ),
               )
                   : null,
             ),
@@ -192,7 +198,10 @@ class _PostCardState extends State<PostCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(author, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(
+                    displayName,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   Text(
                     timestamp != null ? timeAgo(timestamp.toDate()) : '',
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
@@ -217,6 +226,7 @@ class _PostCardState extends State<PostCard> {
       },
     );
   }
+
 
   IconData _getStepIcon(int index) {
     switch (index) {
