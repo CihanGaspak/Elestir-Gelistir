@@ -23,11 +23,7 @@
     <ul class="tag-cloud" id="popular-categories"></ul>
   </div>
 
-  <!-- Bugünün Sözü -->
-  <div class="quote-box">
-    💬 <strong>Bugünün Sözü:</strong><br>
-    “Bunca yıl sönmemiş umudum. <br> Nisan değilse Mayıs, Perşembe değilse Pazar.”
-  </div>
+  
 </div>
 
 <style>
@@ -128,14 +124,43 @@
     color: #555;
   }
 
-  .quote-box {
-    font-size: 14px;
-    font-style: italic;
-    background: #fff9ec;
-    padding: 14px;
-    border-left: 5px solid #ffb74d;
-    border-radius: 10px;
-    color: #444;
-    line-height: 1.5;
-  }
+  .tag-cloud li small {
+  color: #888;
+  font-size: 12px;
+}
+.tag-cloud {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.tag-cloud li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: #f2f4f8;
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: #333;
+  border: 1px solid #ddd;
+  transition: all 0.2s ease-in-out;
+}
+
+.tag-cloud li:hover {
+  background-color: #ffe0b2;
+  border-color: #ffb74d;
+  cursor: pointer;
+  transform: scale(1.05);
+}
+
+.tag-cloud li small {
+  font-size: 12px;
+  color: #666;
+}
+
 </style>

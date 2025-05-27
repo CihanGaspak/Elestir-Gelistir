@@ -1,57 +1,77 @@
-/* Genel yapı */
-body {
-  padding: 40px 0;
+/* Temel sıfırlama */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
   margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
   font-family: Arial, sans-serif;
   background: #fff8f0;
-  justify-content: center;
-  align-items: center;
-  padding: 40px 0; /* Üstten boşluk */
+  overflow: hidden;
 }
 
-main {
-  width: 100%;
-  max-width: 750px;
-  margin: 0 auto;
+/* Ana Flex Yapı */
+body {
   display: flex;
-  flex-direction: column;
-  background: #fff8f0;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  overflow: visible;
 }
 
-
-
-header {
-  background-color: #fb8c00;
-  color: white;
-  padding: 12px 20px;
-  font-size: 20px;
-  font-weight: bold;
-  text-align: center;
+/* Sidebar - genişliği ekranın %20'si */
+.sidebar {
+  flex: 0 0 30%;
+  height: 100%;
+  background: #fff;
+  border-right: 1px solid #ddd;
 }
 
-#chat-container {
+.sidebar iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Chat kısmı - kalan %80 */
+.chat {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 20px 16px;
-  overflow-y: auto;
+  background: #fdf7f0;
+  height: 100%;
 }
 
-/* Mesaj yapısı */
+/* Üst bar */
+header {
+  background-color: #fb8c00;
+  color: white;
+  padding: 16px 24px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Chat mesaj alanı */
+#chat-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Mesaj stili */
 .message {
-  animation: slideIn 0.3s ease;
-  max-width: 80%;
-  padding: 10px 14px;
-  margin: 8px;
-  border-radius: 12px;
-  word-wrap: break-word;
-  position: relative;
   display: flex;
   gap: 8px;
   align-items: flex-end;
+  padding: 10px 14px;
+  border-radius: 12px;
+  word-wrap: break-word;
+  max-width: 100%;
+  animation: slideIn 0.3s ease;
 }
 
 .message-content {
@@ -73,68 +93,27 @@ header {
   flex-shrink: 0;
 }
 
-/* Kullanıcı ve AI mesaj farkı */
 .user {
   background-color: #e0e0e0;
   align-self: flex-end;
-  border-top-right-radius: 0;
   flex-direction: row-reverse;
-}
-
-.user .avatar {
-  right: -32px;
+  border-top-right-radius: 0;
 }
 
 .ai {
   background-color: #fff3e0;
   align-self: flex-start;
-  border-top-left-radius: 0;
   flex-direction: row;
+  border-top-left-radius: 0;
 }
 
-.ai .avatar {
-  left: -32px;
-}
-
-/* Daha belirgin AI mesajı */
 .message.ai {
   background-color: #fff9ec;
   border-left: 4px solid #f57c00;
-  border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* Giriş alanı */
-.input-group {
-  display: flex;
-  padding: 10px;
-  background-color: white;
-  border-top: 1px solid #ddd;
-}
-
-.input-group input {
-  flex: 1;
-  padding: 10px;
-  border: 2px solid #fb8c00;
-  border-radius: 20px;
-  font-size: 14px;
-  outline: none;
-}
-
-.input-group button {
-  background-color: #fb8c00;
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  margin-left: 8px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-/* Yazıyor efekti */
+/* Yazıyor animasyonu */
 .typing::after {
   content: '';
   display: inline-block;
@@ -171,26 +150,43 @@ header {
   }
 }
 
-/* Devamını Göster butonu */
-.expand-btn {
-  margin-top: 8px;
-  background-color: transparent;
-  border: none;
-  color: #fb8c00;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 0;
-  font-size: 14px;
+/* Mesaj giriş alanı */
+.input-group {
+  display: flex;
+  padding: 12px 20px;
+  border-top: 1px solid #ccc;
+  gap: 10px;
+  background-color: white;
 }
 
+.input-group input {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid #fb8c00;
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+}
+
+.input-group button {
+  background-color: #fb8c00;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Kategori dropdown */
 .custom-dropdown {
-  position: relative;
+  position: relative; /* EKLE */
   display: flex;
   justify-content: center;
   margin: 10px auto 5px auto;
-  font-family: Arial;
+  padding: 0 10px;
+  max-width: 100%;
 }
-
 
 
 #dropdown-btn {
@@ -202,7 +198,7 @@ header {
   color: #fb8c00;
   cursor: pointer;
   font-size: 14px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
 }
 
@@ -210,6 +206,23 @@ header {
   background-color: #fb8c00;
   color: white;
 }
+
+.dropdown-menu {
+  position: absolute;
+  bottom: 110%; /* Menü butonun üstünde açılır */
+  top: auto;    /* Alt üst pozisyonu temizle */
+  left: 0;
+  background: white;
+  border: 2px solid #fb8c00;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+  max-height: 250px;
+  overflow-y: auto;
+  min-width: 180px;
+  padding: 8px 0;
+}
+
 
 .dropdown-menu div {
   padding: 10px 14px;
@@ -219,44 +232,26 @@ header {
   transition: all 0.2s ease;
 }
 
-
-
-#dropdown-btn .arrow {
-  margin-left: 8px;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 110%; /* yukarı açılsın */
-  left: 0;
-  right: 0;
-  background: white;
-  border: 2px solid #fb8c00;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  z-index: 100;
-  max-height: 250px; /* uzun liste için sınırlama */
-  overflow-y: auto; /* scroll çıksın */
-  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.08);
-
-}
-
-
 .dropdown-menu div:hover {
   background-color: #fb8c00;
   color: white;
 }
 
+
 .hidden {
   display: none;
 }
 
+
+/* Öneri butonları */
 .suggestions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
   margin: 10px 0;
+  padding: 0 10px;
+  max-width: 100%;
 }
 
 .suggestion-btn {
@@ -271,24 +266,6 @@ header {
 }
 
 .suggestion-btn:hover {
-  background-color: #fb8c00;
-  color: white;
-}
-
-.restart-btn {
-  background-color: white;
-  border: 2px solid #fb8c00;
-  border-radius: 12px;
-  padding: 8px 16px;
-  margin: 10px auto;
-  display: block;
-  font-weight: bold;
-  color: #fb8c00;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.restart-btn:hover {
   background-color: #fb8c00;
   color: white;
 }

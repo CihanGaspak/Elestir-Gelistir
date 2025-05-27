@@ -189,7 +189,7 @@
 
 .posts-title-wrapper h3 {
   margin: 0;
-  display: inline-block; /* garantili merkezlenme */
+  display: center; /* garantili merkezlenme */
   font-size: 22px;
   font-weight: 600;
   color: #333;
@@ -198,6 +198,52 @@
 #posts-container {
   max-width: 700px;
   margin: 20px auto; /* Ortalar */
+}
+
+.profile-actions button {
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.custom-btn {
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.3s ease;
+}
+
+/* Renk sınıfları */
+.btn-orange {
+  background-color: #fb8c00;
+}
+.btn-orange:hover {
+  background-color: #e67c00;
+}
+
+.btn-red {
+  background-color: #d32f2f;
+}
+.btn-red:hover {
+  background-color: #b71c1c;
+}
+
+.btn-grey {
+  background-color: #e0e0e0;
+  color: black;
+}
+.btn-grey:hover {
+  background-color: #bdbdbd;
 }
 
 
@@ -214,11 +260,20 @@
     <p id="profile-bio" class="bio-text">Bunca yıl sönmemiş umudum<br>Nisan değilse Mayıs, Perşembe değilse Pazar</p>
 
     <div class="stats clickable-stats">
-      <div><strong id="followers-count">143</strong><br><span>Takipçi</span></div>
-      <div><strong id="following-count">87</strong><br><span>Takip</span></div>
-      <div><strong id="usefulness-score">8.9/10</strong><br><span>Faydalılık</span></div>
-      <div><strong id="posts-count">0</strong><br><span>Post</span></div>
-    </div>
+  <div class="stat-item" data-type="followers">
+    <strong id="followers-count">0</strong><br><span>Takipçi</span>
+  </div>
+  <div class="stat-item" data-type="following">
+    <strong id="following-count">0</strong><br><span>Takip</span>
+  </div>
+  <div>
+    <strong id="usefulness-score">0/10</strong><br><span>Faydalılık</span>
+  </div>
+  <div>
+    <strong id="posts-count">0</strong><br><span>Post</span>
+  </div>
+</div>
+
   </div>
 
   <!-- Butonlar sağda -->
@@ -228,7 +283,7 @@
 
   
   <div class="posts-title-wrapper">
-  <h3>Gönderilerim</h3>
+  <h3>Gönderiler</h3>
 </div>
 <div id="posts-container"></div>
 
@@ -242,7 +297,7 @@
 import { showProfileEditWidget } from './profileEdit.js';
 import { auth, db } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { doc, getDoc, collection, query, where, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { doc, getDoc, collection, query, where, onSnapshot, updateDoc, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // 🔥 Yeni sistem
 let allPosts = [];
@@ -258,9 +313,10 @@ onAuthStateChanged(auth, async (user) => {
         document.querySelector(".profile-header img.avatar").src = data.photoUrl || 'assets/avatars/avatar1.png';
         document.getElementById("profile-name").textContent = data.username || "Kullanıcı";
         document.getElementById("profile-username").textContent = `@${data.username || "kullanici"}`;
-        document.getElementById("followers-count").textContent = data.followers || 0;
-        document.getElementById("following-count").textContent = data.following || 0;
+        document.getElementById("followers-count").textContent = data.followers?.length || 0;
+        document.getElementById("following-count").textContent = data.following?.length || 0;
         document.getElementById("usefulness-score").textContent = data.usefulness || "0/10";
+        const actionsContainer = document.getElementById("profile-actions");
 
          // 🔥 Tam burada butonları ekle
         if (user.uid === profileUid) {
@@ -272,6 +328,59 @@ onAuthStateChanged(auth, async (user) => {
 
     document.querySelector(".profile-edit-btn").onclick = () => showProfileEditWidget({ uid: profileUid, username: data.username });
     document.querySelector(".profile-logout-btn").onclick = () => auth.signOut().then(() => window.location.href = "login.html");
+}
+
+if (user.uid === profileUid) {
+  // ✅ Kendi profilin: düzenle ve çıkış
+  actionsContainer.innerHTML = `
+    <button class="profile-edit-btn">Profili Düzenle</button>
+    <button class="profile-logout-btn">Çıkış Yap</button>
+  `;
+  document.querySelector(".profile-edit-btn").onclick = () => showProfileEditWidget({ uid: profileUid, username: data.username });
+  document.querySelector(".profile-logout-btn").onclick = () => auth.signOut().then(() => window.location.href = "login.html");
+
+} else {
+  // ✅ Başkasının profili
+  const isFollowing = data.followers?.includes(user.uid);
+  const followsMe = data.following?.includes(user.uid);
+
+  actionsContainer.innerHTML = `
+  <button class="custom-btn ${isFollowing ? "btn-grey" : "btn-orange"} follow-toggle-btn" id="follow-btn">
+    ${isFollowing ? "Takipten Çık" : "Takip Et"}
+  </button>
+  ${followsMe ? `<button class="custom-btn btn-red" id="remove-follower-btn">Takipçiden Çıkar</button>` : ""}
+`;
+
+
+
+
+  // Takip et / takipten çık
+  document.getElementById("follow-btn").onclick = async () => {
+    const currentRef = doc(db, "users", user.uid);
+    const targetRef = doc(db, "users", profileUid);
+
+    if (isFollowing) {
+      await updateDoc(currentRef, { following: arrayRemove(profileUid) });
+      await updateDoc(targetRef, { followers: arrayRemove(user.uid) });
+    } else {
+      await updateDoc(currentRef, { following: arrayUnion(profileUid) });
+      await updateDoc(targetRef, { followers: arrayUnion(user.uid) });
+    }
+    location.reload(); // Güncelle
+  };
+
+  // Takipçiden çıkar
+  if (followsMe) {
+    document.getElementById("remove-follower-btn").onclick = async () => {
+      const currentRef = doc(db, "users", user.uid);
+      const targetRef = doc(db, "users", profileUid);
+
+      await updateDoc(currentRef, { followers: arrayRemove(profileUid) });
+      await updateDoc(targetRef, { following: arrayRemove(user.uid) });
+
+      location.reload();
+    };
+  }
 }
 
 
@@ -477,6 +586,20 @@ function timeAgo(date) {
 
     return "Az önce";
 }
+
+const urlParams = new URLSearchParams(window.location.search);
+const viewedUid = urlParams.get("uid");
+
+document.querySelectorAll('.stat-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const type = item.dataset.type; // 'followers' veya 'following'
+    const uid = viewedUid || currentUserId; // hangisi varsa onu kullan
+
+    if (uid && type) {
+      window.location.href = `followers.html?uid=${uid}&type=${type}`;
+    }
+  });
+});
 
 
 </script>

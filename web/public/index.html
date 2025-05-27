@@ -223,6 +223,22 @@
   min-width: 300px;
 }
 
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.empty-state {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+
   </style>
 </head>
 <body>
@@ -238,24 +254,27 @@
     <div class="center-column">
     <div style="text-align: center; margin-top: 10px;">
  
-    <div class="ai-card">
+    <div class="ai-card-new">
   <div class="ai-card-left">
-    <div class="ai-card-title">🤖 AI Chatbot</div>
-    <div class="ai-card-desc">
-      Merak ettiğin her şeyi sorabilirsin! <br>
-      Yapay zekâdan <strong>öneri</strong>, <strong>fikir</strong>, <strong>rehberlik</strong> al!
-    </div>
-    <button onclick="window.open('chatbot.html', '_blank')" class="ai-open-btn">Chatbot'u Aç</button>
+    <h3><i class="fas fa-robot"></i> AI Chatbot</h3>
+    <p>Merak ettiğin her şeyi sorabilirsin. <br> Yapay zekâdan <strong>öneri</strong>, <strong>fikir</strong>, <strong>rehberlik</strong> al!</p>
+    <button onclick="window.location.href='chatbot.html'" class="ai-open-btn">Chatbot'u Aç</button>
+
   </div>
+  
   <div class="ai-card-right">
-    <p class="sample-question-title">🧠 Popüler Sorular</p>
+    <h4><i class="fas fa-pen animated-icon"></i> Neler Yapabilir?</h4>
+
     <ul>
-      <li>✔️ Evde internetle nasıl para kazanılır?</li>
-      <li>✔️ Hangi mesleği seçmeliyim?</li>
-      <li>✔️ Zamanımı daha verimli nasıl kullanırım?</li>
+      <li><i class="fas fa-bolt"></i> Sorularına mantıklı ve yaratıcı yanıtlar verir.</li>
+      <li><i class="fas fa-brain"></i> Problemleri analiz eder, çözümler sunar.</li>
+      <li><i class="fas fa-lightbulb"></i> Gönderilerini geliştirmen için öneriler verir.</li>
+      <li><i class="fas fa-book-open"></i> Soru türüne uygun örnekler üretir.</li>
+      <li><i class="fas fa-compass"></i> Sana özel başlıklar önerip yönlendirir.</li>
     </ul>
   </div>
 </div>
+
 
 </div>
 
@@ -306,9 +325,63 @@
     <!-- Günün Geliştirisi Alanı -->
   <div id="daily-highlight"></div>
   
-    <!-- Gönderi Listeleme Alanı -->
+ <!-- 🟠 AKIŞ SEÇİM BAR -->
+<div class="feed-toggle-bar" id="feedToggleBar">
+  <button class="feed-tab active" onclick="toggleFeed('following')">👥 Takip</button>
+  <button class="feed-tab" onclick="toggleFeed('all')">🌍 Herkes</button>
+  <span class="feed-indicator" id="feedIndicator"></span>
+</div>
+
+
+
+<!-- Gönderi Listeleme Alanı -->
   <div id="post-feed" style="max-width: 700px; margin: auto; margin-top: 20px;"></div>
     </div>
+<style>
+ .feed-toggle-bar {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin: 20px auto 10px;
+  border-bottom: 1px solid #e0e0e0;
+  max-width: 600px;
+  position: relative;
+}
+
+.feed-tab {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 12px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #777;
+  cursor: pointer;
+  outline: none;
+  transition: color 0.2s ease;
+}
+
+.feed-tab:hover {
+  color: #333;
+}
+
+.feed-tab.active {
+  color: #000;
+  font-weight: 600;
+}
+
+.feed-indicator {
+  position: absolute;
+  bottom: -2px;
+  height: 3px;
+  background-color: #fb8c00; /* 🍊 Turuncu */
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+</style>
+
+
   
     
   <!-- Sağ Sütun -->
@@ -358,6 +431,8 @@
   
     let currentUser = null;
     let allPosts = [];
+    let myFollowing = []; // ✅ BURAYI EKLE
+
   
     const postFeed = document.getElementById("post-feed");
   
@@ -369,6 +444,7 @@
         uid: user.uid,
         ...userDoc.data()
       };
+      myFollowing = currentUser.following || [];
       document.getElementById("post-username").textContent = currentUser.username;
       if (currentUser.photoUrl?.startsWith("assets/")) {
         document.getElementById("user-avatar").src = currentUser.photoUrl;
@@ -419,19 +495,69 @@ onSnapshot(collection(db, "posts"), snapshot => {
       document.getElementById("submit-button").style.backgroundColor = "gray";
     };
   
-async function renderPosts(category = "Tümü") {
+let currentFeedType = "following"; // varsayılan
+
+window.toggleFeed = function (type) {
+  currentFeedType = type;
+  const tabs = document.querySelectorAll(".feed-tab");
+  tabs.forEach(tab => tab.classList.remove("active"));
+
+  const activeTab = [...tabs].find(tab => tab.textContent.includes(type === "following" ? "Takip" : "Herkes"));
+  activeTab.classList.add("active");
+
+  // 🔥 Alt çizgiyi hareket ettir
+  const indicator = document.getElementById("feedIndicator");
+  const rect = activeTab.getBoundingClientRect();
+  const parentRect = activeTab.parentElement.getBoundingClientRect();
+
+  indicator.style.width = `${rect.width}px`;
+  indicator.style.left = `${rect.left - parentRect.left}px`;
+
+  // Postları yeniden yükle
+  const selectedCategory = document.querySelector(".category-btn.active")?.textContent.trim() || "Tümü";
+  renderPosts(selectedCategory);
+};
+
+
+window.renderPosts = async function (category = "Tümü") {
   postFeed.innerHTML = "";
   const uid = currentUser?.uid || "";
-  const filtered = category === "Tümü"
-    ? allPosts
-    : allPosts.filter(post => post.data.category === category);
+  let filtered = allPosts;
+
+  // 1. Kategoriye göre filtrele
+  if (category !== "Tümü") {
+    filtered = filtered.filter(post => post.data.category === category);
+  }
+
+  // 2. Akış filtresine göre:
+  if (currentFeedType === "following") {
+    filtered = filtered.filter(post => myFollowing.includes(post.data.authorId));
+  }
+
+  if (filtered.length === 0) {
+  postFeed.innerHTML = `
+    <div class="empty-state" style="text-align:center; margin-top:40px;">
+      <img src="assets/no-posts.png" alt="Gönderi bulunamadı"
+           style="width: 240px; max-width:100%; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto;" />
+      <div style="font-size: 22px; color: #444; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 6px;">
+        <i class="fas fa-search"></i> Oops!
+      </div>
+      <p style="color: #888; font-size: 15px;">Hiç gönderi bulunamadı.</p>
+    </div>
+  `;
+  return;
+}
+
+
 
   for (const { docId, data } of filtered) {
     const postHTML = await generatePostHTML(data, docId, uid);
     postFeed.insertAdjacentHTML("beforeend", postHTML);
-    attachPostEvents(docId, data, uid, category); // 🟢 Her post için ayrı event ekle
+    attachPostEvents(docId, data, uid, category);
   }
-}
+
+};
+
 
 // 🔥 Tek tek buton event'leri ekleyen fonksiyon
 function attachPostEvents(docId, data, uid, category) {
@@ -673,6 +799,8 @@ async function loadDailyPost() {
   document.getElementById("daily-highlight").innerHTML = dailyHTML;
 }
 
+
+  window.addEventListener("load", () => toggleFeed("following"));
 
   </script>
   

@@ -1,510 +1,574 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Eleştir-AI Chat</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="chatbot.css">
-</head>
-<body>
- <main>
-  <header>eleştir-AI</header>
+  <!DOCTYPE html>
+  <html lang="tr">
+  <head>
+    <link rel="icon" type="image/png" href="favicon.png">
 
-  <div id="chat-container"></div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eleştir-AI Chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="chatbot.css">
+  </head>
+  <body style="margin: 0; font-family: Arial, sans-serif; height: 100vh; width: 100vw; overflow: hidden;">
+    <div style="display: flex; height: 100%; width: 100%;"> <!-- Tam ekran flex -->
 
-  <!-- Kategori Seç Butonu -->
-  <div class="custom-dropdown">
-    <button id="dropdown-btn">Kategori seç <span class="arrow">▼</span></button>
-    <div id="dropdown-menu" class="dropdown-menu hidden">
-      <div onclick="selectCategory('Eğitim')">Eğitim</div>
-      <div onclick="selectCategory('Spor')">Spor</div>
-      <div onclick="selectCategory('Tamirat')">Tamirat</div>
-      <div onclick="selectCategory('Araç Bakım')">Araç Bakım</div>
-      <div onclick="selectCategory('Sağlık')">Sağlık</div>
-      <div onclick="selectCategory('Teknoloji')">Teknoloji</div>
-      <div onclick="selectCategory('Kişisel Gelişim')">Kişisel Gelişim</div>
-      <div onclick="selectCategory('Sanat')">Sanat</div>
-      <div onclick="selectCategory('Yazılım')">Yazılım</div>
+      <!-- 📂 Sidebar Sütunu -->
+      <div style="width: 30vw; background: #fff; border-right: 1px solid #ddd;">
+
+        <iframe src="sidebar.html" style="width: 100%; height: 100%; border: none;"></iframe>
+      </div>
+
+      <!-- 💬 Chat Sütunu -->
+      <div style="flex: 1; display: flex; flex-direction: column; background: #fdf7f0; height: 100%;">
+
+
+        <!-- Üst Bar -->
+        <header style="background: #FB8C00; color: white; padding: 16px 24px; font-size: 20px; font-weight: bold;">
+          eleştir-AI
+        </header>
+
+        <!-- Chat Alanı -->
+        <div id="chat-container" style="flex: 1; overflow-y: auto; padding: 20px;"></div>
+
+        <!-- Kategori Butonu -->
+        <div class="custom-dropdown" style="padding: 0 20px 10px;">
+          <button id="dropdown-btn">Kategori seç <span class="arrow">▼</span></button>
+          <div id="dropdown-menu" class="dropdown-menu hidden">
+            <div onclick="selectCategory('Eğitim')">Eğitim</div>
+            <div onclick="selectCategory('Spor')">Spor</div>
+            <div onclick="selectCategory('Tamirat')">Tamirat</div>
+            <div onclick="selectCategory('Araç Bakım')">Araç Bakım</div>
+            <div onclick="selectCategory('Sağlık')">Sağlık</div>
+            <div onclick="selectCategory('Teknoloji')">Teknoloji</div>
+            <div onclick="selectCategory('Kişisel Gelişim')">Kişisel Gelişim</div>
+            <div onclick="selectCategory('Sanat')">Sanat</div>
+            <div onclick="selectCategory('Yazılım')">Yazılım</div>
+          </div>
+        </div>
+
+        <!-- Öneriler -->
+        <div id="suggestions" class="suggestions" style="padding: 0 20px 10px;"></div>
+
+        <!-- Mesaj Girişi -->
+        <div class="input-group" style="display: flex; padding: 12px 20px; border-top: 1px solid #ccc; gap: 10px;">
+          <input type="text" id="user-input" placeholder="Mesajınızı yazın..." style="flex: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px;">
+          <button onclick="sendMessage()" style="background-color: #FB8C00; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;">
+            Gönder
+          </button>
+        </div>
+
+      </div>
     </div>
-  </div>
-
-    <div id="suggestions" class="suggestions"></div>
-
-  <!-- Mesaj Giriş Alanı -->
-  <div class="input-group">
-    <input type="text" id="user-input" placeholder="Mesajınızı yazın...">
-    <button onclick="sendMessage()">Gönder</button>
-  </div>
-
-  <!-- 🔄 Yeni Konuşma Butonu -->
-<button onclick="resetChat()" class="restart-btn">
-  <i class="fas fa-comments"></i> Yeni Konuşma
-</button>
-
-</main>
+  </body>
 
 
-  <script type="module">
+    <script type="module">
 
-window.selectCategory = function (category) {
-  dropdownBtn.innerHTML = category + ' <span class="arrow">▼</span>';
-  dropdownMenu.classList.add('hidden');
-
-  // Kutunun gerçekten var olup olmadığını kontrol et
-  let suggestionsBox = document.getElementById('suggestions');
-  
-  // Yoksa tekrar oluştur ve input alanından hemen önce ekle
-  if (!suggestionsBox) {
-    suggestionsBox = document.createElement('div');
-    suggestionsBox.id = 'suggestions';
-    suggestionsBox.className = 'suggestions';
-    const inputGroup = document.querySelector('.input-group');
-    inputGroup.parentNode.insertBefore(suggestionsBox, inputGroup);
-  }
-
-  // Önceki butonları temizle
-  suggestionsBox.innerHTML = "";
-
-  // Yeni butonları ekle
-  if (categorySuggestions[category]) {
-    categorySuggestions[category].forEach(soru => {
-      const btn = document.createElement('button');
-      btn.textContent = soru;
-      btn.className = "suggestion-btn";
-      btn.onclick = () => {
-        userInput.value = soru;
-        sendMessage();
-        suggestionsBox.innerHTML = "";
-      };
-      suggestionsBox.appendChild(btn);
-    });
-  }
-};
-
-
-
-const categorySuggestions = {
-  "Eğitim": [
-    "Verimli ders çalışmak için ne yapmalıyım?",
-    "Öğrenciler için zaman yönetimi nasıl olmalı?",
-    "Online eğitim faydalı mı?"
-  ],
-  "Spor": [
-    "Kas yapmak için ne yemeliyim?",
-    "Evde spor programı önerir misin?",
-    "Spor sakatlıkları nasıl önlenir?"
-  ],
-  "Tamirat": [
-    "Musluk sızıntısı nasıl giderilir?",
-    "Kendi priz tamirimi yapabilir miyim?",
-    "Evin duvarındaki çatlak tehlikeli mi?"
-  ],
-  "Araç Bakım": [
-    "Yağ değişimi ne sıklıkla yapılır?",
-    "Araba aküsü nasıl kontrol edilir?",
-    "Kışın araca nasıl bakım yapılır?"
-  ],
-  "Sağlık": [
-    "Gripten korunmak için ne yapmalıyım?",
-    "Daha enerjik hissetmek için ne yemeliyim?",
-    "Göz yorgunluğu nasıl geçer?"
-  ],
-  "Teknoloji": [
-    "Yeni telefon alırken nelere dikkat etmeliyim?",
-    "Bilgisayarım yavaşladı, ne yapabilirim?",
-    "Yapay zekâ hayatımızı nasıl etkiliyor?"
-  ],
-  "Kişisel Gelişim": [
-    "Özgüven nasıl artırılır?",
-    "Sabah rutini neden önemlidir?",
-    "Hedef belirleme nasıl yapılır?"
-  ],
-  "Sanat": [
-    "Resme nereden başlamalıyım?",
-    "Yaratıcılığı artırmak için ne yapılır?",
-    "Sanat terapisi nedir?"
-  ],
-  "Yazılım": [
-    "Yazılım öğrenmeye nereden başlanır?",
-    "Frontend ve Backend farkı nedir?",
-    "Hangi programlama dili bana uygun?"
-  ]
-};
-
-const dropdownBtn = document.getElementById('dropdown-btn');
-const dropdownMenu = document.getElementById('dropdown-menu');
-
-dropdownBtn.addEventListener('click', () => {
-  dropdownMenu.classList.toggle('hidden');
-});
-
-// dışarı tıklanınca kapansın
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.custom-dropdown')) {
+  window.selectCategory = function (category) {
+    dropdownBtn.innerHTML = category + ' <span class="arrow">▼</span>';
     dropdownMenu.classList.add('hidden');
-  }
+
+    // Kutunun var olup olmadığını kontrol et
+    let suggestionsBox = document.getElementById('suggestions');
+
+    // Yoksa oluştur ve input alanından önce ekle
+    if (!suggestionsBox) {
+      suggestionsBox = document.createElement('div');
+      suggestionsBox.id = 'suggestions';
+      suggestionsBox.className = 'suggestions';
+      const inputGroup = document.querySelector('.input-group');
+      inputGroup.parentNode.insertBefore(suggestionsBox, inputGroup);
+    }
+
+    // Önceki butonları temizle ve gizle
+    suggestionsBox.innerHTML = "";
+    suggestionsBox.style.display = "none";
+
+    // Yeni butonları ekle ve görünür yap
+    if (categorySuggestions[category]) {
+      suggestionsBox.style.display = "block";
+      categorySuggestions[category].forEach(soru => {
+        const btn = document.createElement('button');
+        btn.textContent = soru;
+        btn.className = "suggestion-btn";
+        btn.onclick = () => {
+          userInput.value = soru;
+          sendMessage();
+          suggestionsBox.innerHTML = "";
+          suggestionsBox.style.display = "none";
+        };
+        suggestionsBox.appendChild(btn);
+      });
+    }
+  };
+
+
+
+  const categorySuggestions = {
+    "Eğitim": [
+      "Verimli ders çalışmak için ne yapmalıyım?",
+      "Öğrenciler için zaman yönetimi nasıl olmalı?",
+      "Online eğitim faydalı mı?"
+    ],
+    "Spor": [
+      "Kas yapmak için ne yemeliyim?",
+      "Evde spor programı önerir misin?",
+      "Spor sakatlıkları nasıl önlenir?"
+    ],
+    "Tamirat": [
+      "Musluk sızıntısı nasıl giderilir?",
+      "Kendi priz tamirimi yapabilir miyim?",
+      "Evin duvarındaki çatlak tehlikeli mi?"
+    ],
+    "Araç Bakım": [
+      "Yağ değişimi ne sıklıkla yapılır?",
+      "Araba aküsü nasıl kontrol edilir?",
+      "Kışın araca nasıl bakım yapılır?"
+    ],
+    "Sağlık": [
+      "Gripten korunmak için ne yapmalıyım?",
+      "Daha enerjik hissetmek için ne yemeliyim?",
+      "Göz yorgunluğu nasıl geçer?"
+    ],
+    "Teknoloji": [
+      "Yeni telefon alırken nelere dikkat etmeliyim?",
+      "Bilgisayarım yavaşladı, ne yapabilirim?",
+      "Yapay zekâ hayatımızı nasıl etkiliyor?"
+    ],
+    "Kişisel Gelişim": [
+      "Özgüven nasıl artırılır?",
+      "Sabah rutini neden önemlidir?",
+      "Hedef belirleme nasıl yapılır?"
+    ],
+    "Sanat": [
+      "Resme nereden başlamalıyım?",
+      "Yaratıcılığı artırmak için ne yapılır?",
+      "Sanat terapisi nedir?"
+    ],
+    "Yazılım": [
+      "Yazılım öğrenmeye nereden başlanır?",
+      "Frontend ve Backend farkı nedir?",
+      "Hangi programlama dili bana uygun?"
+    ]
+  };
+
+let dropdownBtn, dropdownMenu;
+
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("DOMContentLoaded event fired");
+  
+  dropdownBtn = document.getElementById('dropdown-btn');
+  dropdownMenu = document.getElementById('dropdown-menu');
+  
+  console.log("dropdownBtn:", dropdownBtn);
+  console.log("dropdownMenu:", dropdownMenu);
+
+  dropdownBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    console.log("Dropdown button clicked");
+    dropdownMenu.classList.toggle('hidden');
+    console.log("Dropdown menu toggled. Now hidden?", dropdownMenu.classList.contains('hidden'));
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.custom-dropdown')) {
+      console.log("Clicked outside dropdown - hiding menu");
+      dropdownMenu.classList.add('hidden');
+    } else {
+      console.log("Clicked inside dropdown - do nothing");
+    }
+  });
 });
 
-// kategori seçilince butona yaz, ve istersen soruları göster
-function selectCategory(category) {
-  dropdownBtn.innerHTML = category + ' <span class="arrow">▼</span>';
-  dropdownMenu.classList.add('hidden');
 
-  // Öneri kutusunu temizle ve yeniden doldur
-  const suggestionsBox = document.getElementById('suggestions');
-  suggestionsBox.innerHTML = "";
-
-  if (categorySuggestions[category]) {
-  categorySuggestions[category].forEach(soru => {
-    const btn = document.createElement('button');
-    btn.textContent = soru;
-    btn.onclick = () => {
-      userInput.value = soru;     // input'a yaz
-      sendMessage();              // mesajı gönder
-      suggestionsBox.innerHTML = ""; // öneri butonlarını kaldır
-    };
-    suggestionsBox.appendChild(btn);
+  // dışarı tıklanınca kapansın
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.custom-dropdown')) {
+      dropdownMenu.classList.add('hidden');
+    }
   });
-}
-}
 
 
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    arrayUnion,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      const firebaseConfig = {
+        apiKey: "AIzaSyByrxwGrUPfIFUjsG2Nsv6niu5aM_5v4wM",
+        authDomain: "elestir-gelistir.firebaseapp.com",
+        projectId: "elestir-gelistir",
+        storageBucket: "elestir-gelistir.appspot.com",
+        messagingSenderId: "329858460105",
+        appId: "1:329858460105:web:0a1940df3d7b57593b6018"
+      };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyByrxwGrUPfIFUjsG2Nsv6niu5aM_5v4wM",
-      authDomain: "elestir-gelistir.firebaseapp.com",
-      projectId: "elestir-gelistir",
-      storageBucket: "elestir-gelistir.appspot.com",
-      messagingSenderId: "329858460105",
-      appId: "1:329858460105:web:0a1940df3d7b57593b6018"
-    };
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+      const chatId = localStorage.getItem("activeChatId");
 
-    let username = "Kullanıcı";
-    let photoUrl = "assets/avatars/avatar0.png";
 
-    const chatContainer = document.getElementById('chat-container');
-    const userInput = document.getElementById('user-input');
+      let username = "Kullanıcı";
+      let photoUrl = "assets/avatars/avatar0.png";
 
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const uid = user.uid;
-        const docSnap = await getDoc(doc(db, "users", uid));
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          username = data.username || "Kullanıcı";
-          photoUrl = data.photoUrl && data.photoUrl.trim() !== ""
-            ? (data.photoUrl.startsWith("assets/") ? data.photoUrl : data.photoUrl)
-            : "assets/avatars/avatar0.png";
+      const chatContainer = document.getElementById('chat-container');
+      const userInput = document.getElementById('user-input');
+
+      onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      // Giriş yapılmamışsa login sayfasına gönder
+      window.location.href = "login.html";
+      return;
+    }
+
+    const uid = user.uid;
+    const docSnap = await getDoc(doc(db, "users", uid));
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      username = data.username || "Kullanıcı";
+      photoUrl = data.photoUrl && data.photoUrl.trim() !== ""
+        ? (data.photoUrl.startsWith("assets/") ? data.photoUrl : data.photoUrl)
+        : "assets/avatars/avatar0.png";
+    }
+
+    // Eğer önceki bir sohbet varsa, onu getir
+    if (chatId) {
+      const chatRef = doc(db, "users", user.uid, "chats", chatId);
+      const chatSnap = await getDoc(chatRef);
+      if (chatSnap.exists()) {
+        const chat = chatSnap.data();
+        if (chat.messages && Array.isArray(chat.messages)) {
+          chat.messages.forEach((msg) => {
+            appendMessage(
+              msg.role,
+              msg.text,
+              msg.role === "user" ? username : "Eleştir-AI 🤖",
+              msg.role === "user" ? photoUrl : "assets/avatars/elestir-AI.png"
+            );
+          });
+        }
+      }
+    } else {
+      // Yeni konuşmaysa karşılama mesajı ver
+      showWelcomeMessage();
+    }
+  });
+
+
+      function showWelcomeMessage() {
+    appendMessage("ai", `Merhaba <b>${username}</b>, ben <b>eleştir-AI 🤖</b><br>Size nasıl yardımcı olabilirim?`, "eleştir-AI 🤖", "assets/avatars/elestir-AI.png");
+  }
+
+
+      function appendMessage(role, text, username = '', photo = '') {
+        const div = document.createElement('div');
+        div.className = `message ${role}`;
+        let content = text;
+        let isLong = content.length > 400;
+        let shortText = isLong ? content.slice(0, 400) + "..." : content;
+
+        div.innerHTML = `
+          <img class="avatar" src="${photo}" alt="avatar">
+          <div class="message-content">
+            <div class="username">${username}</div>
+            <div class="text">${shortText}</div>
+            ${isLong ? '<button class="expand-btn">Devamını Göster</button>' : ''}
+          </div>
+        `;
+
+        if (isLong) {
+          div.querySelector('.expand-btn').addEventListener('click', () => {
+            div.querySelector('.text').innerHTML = content;
+            div.querySelector('.expand-btn').remove();
+          });
         }
 
-        showWelcomeMessage();
-
-      }
-    });
-
-    function showWelcomeMessage() {
-  appendMessage("ai", `Merhaba <b>${username}</b>, ben <b>eleştir-AI 🤖</b><br>Size nasıl yardımcı olabilirim?`, "eleştir-AI 🤖", "assets/avatars/elestir-AI.png");
-}
-
-
-    function appendMessage(role, text, username = '', photo = '') {
-      const div = document.createElement('div');
-      div.className = `message ${role}`;
-      let content = text;
-      let isLong = content.length > 400;
-      let shortText = isLong ? content.slice(0, 400) + "..." : content;
-
-      div.innerHTML = `
-        <img class="avatar" src="${photo}" alt="avatar">
-        <div class="message-content">
-          <div class="username">${username}</div>
-          <div class="text">${shortText}</div>
-          ${isLong ? '<button class="expand-btn">Devamını Göster</button>' : ''}
-        </div>
-      `;
-
-      if (isLong) {
-        div.querySelector('.expand-btn').addEventListener('click', () => {
-          div.querySelector('.text').innerHTML = content;
-          div.querySelector('.expand-btn').remove();
-        });
+        chatContainer.appendChild(div);
+        div.scrollIntoView({ behavior: "smooth" });
       }
 
-      chatContainer.appendChild(div);
-      div.scrollIntoView({ behavior: "smooth" });
-    }
-
-    async function typeText(element, text) {
-      element.innerHTML = '';
-      for (let i = 0; i < text.length; i++) {
-        element.innerHTML += text[i];
-        await new Promise(resolve => setTimeout(resolve, 8)); // Hız ayarı burada
+      async function typeText(element, text) {
+        element.innerHTML = '';
+        for (let i = 0; i < text.length; i++) {
+          element.innerHTML += text[i];
+          await new Promise(resolve => setTimeout(resolve, 8)); // Hız ayarı burada
+        }
       }
-    }
 
     window.sendMessage = async function () {
-      const text = userInput.value.trim();
-      if (!text) return;
+    const text = userInput.value.trim();
+    if (!text) return;
 
-      // ✅ kategori dropdown'ını gizle
-      document.querySelector('.custom-dropdown')?.classList.add('hidden');
+    // Mesaj gönderildiğinde kategori butonunu gizle
+    document.querySelector('.custom-dropdown')?.classList.add('hidden');
 
+    // Öneri butonlarını gizle ve temizle
+    const suggestionsBox = document.getElementById('suggestions');
+    if (suggestionsBox) {
+      suggestionsBox.innerHTML = "";
+      suggestionsBox.style.display = "none";
+    }
 
-      appendMessage("user", text, username, photoUrl);
+    const user = auth.currentUser;
+    if (!user) return;
 
-      const loading = document.createElement('div');
-      loading.className = 'message ai';
+    // ID kontrol ve oluşturma
+    let currentChatId = localStorage.getItem("activeChatId");
+    let isNewChat = false;
+
+    if (!currentChatId) {
+      currentChatId = Date.now().toString();
+      localStorage.setItem("activeChatId", currentChatId);
+      isNewChat = true;
+    }
+
+    const chatRef = doc(db, "users", user.uid, "chats", currentChatId);
+
+    // Eğer yeni bir sohbete ilk mesaj ise → sohbeti oluştur
+    if (isNewChat) {
+      const title = text.split(" ").slice(0, 6).join(" ");
+      await setDoc(chatRef, {
+        title,
+        createdAt: serverTimestamp(),
+        messages: []
+      });
+    }
+
+    appendMessage("user", text, username, photoUrl);
+
+    await updateDoc(chatRef, {
+      messages: arrayUnion({
+        role: "user",
+        text: text
+      })
+    });
+
+    // Yükleniyor animasyonu
+    const loading = document.createElement('div');
+    loading.className = 'message ai';
+    loading.innerHTML = `
+      <img class="avatar" src="assets/avatars/elestir-AI.png">
+      <div class="message-content">
+        <div class="username">Eleştir-AI 🤖</div>
+        <div class="text typing">Yazıyor<span class="dot1">.</span><span class="dot2">.</span><span class="dot3">.</span></div>
+      </div>
+    `;
+    chatContainer.appendChild(loading);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    userInput.value = "";
+
+    // Kimlik sorgusu
+    const identityKeywords = ["sen kimsin", "kimsin", "adın ne", "ismin ne"];
+    const matchesIdentity = identityKeywords.some(k => text.toLowerCase().includes(k));
+
+    if (matchesIdentity) {
+      setTimeout(() => {
+        loading.innerHTML = `
+          <img class="avatar" src="assets/avatars/elestir-AI.png">
+          <div class="message-content">
+            <div class="username">Eleştir-AI 🤖</div>
+            <div class="text">Ben, <b>Cihan Gaspak</b> tarafından geliştirilmiş <b>Eleştir-AI 🤖</b>'yım.</div>
+          </div>
+        `;
+      }, 800);
+      return;
+    }
+
+    // API isteği
+    try {
+      const res = await fetch("https://api-wz4bgkt3ua-uc.a.run.app", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `${text}. Cevabı kısa, sade ve teknik bir dille yaz. Samimi ya da sohbet havasında olmasın. Gerekiyorsa maddeler kullan, ama sade olsun.`
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.reply) throw new Error("Geçerli cevap yok");
+
+      const formatted = formatReply(data.reply);
+
       loading.innerHTML = `
         <img class="avatar" src="assets/avatars/elestir-AI.png">
         <div class="message-content">
           <div class="username">Eleştir-AI 🤖</div>
-          <div class="text typing">Yazıyor<span class="dot1">.</span><span class="dot2">.</span><span class="dot3">.</span></div>
+          <div class="text"></div>
         </div>
       `;
-      chatContainer.appendChild(loading);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-      userInput.value = "";
+      loading.querySelector('.text').appendChild(formatted);
 
-      const identityKeywords = [
-        "sen kimsin", "kimsin", "adın ne", "ismin ne", "adı ne", "sen nesin",
-        "senin adın", "sen kimsin?", "kimsin?", "adın?"
-      ];
+      await updateDoc(chatRef, {
+        messages: arrayUnion({
+          role: "ai",
+          text: data.reply
+        })
+      });
 
-      const lowerText = text.toLowerCase();
-      const matchesIdentity = identityKeywords.some(keyword => lowerText.includes(keyword));
+    } catch (err) {
+      loading.innerHTML = `
+        <img class="avatar" src="assets/avatars/elestir-AI.png">
+        <div class="message-content">
+          <div class="username">Eleştir-AI 🤖</div>
+          <div class="text"><i>Hata oluştu</i></div>
+        </div>
+      `;
+    }
 
-      if (matchesIdentity) {
-        setTimeout(() => {
-          loading.innerHTML = `
-            <img class="avatar" src="assets/avatars/elestir-AI.png">
-            <div class="message-content">
-              <div class="username">Eleştir-AI 🤖</div>
-              <div class="text">Ben, <b>Cihan Gaspak</b> tarafından geliştirilmiş <b>Eleştir-AI 🤖</b>'yım.</div>
-            </div>
-          `;
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-        }, 1000);
-        return;
-      }
-
-      try {
-        const res = await fetch("https://api-wz4bgkt3ua-uc.a.run.app", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-message: `${text}. Cevabı kısa, sade ve teknik bir dille yaz. Samimi ya da sohbet havasında olmasın. Gerekiyorsa maddeler kullan, ama sade olsun. Gereksiz açıklamalardan kaçın.`
-})
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  };
 
 
-        });
+      function formatReply(text) {
+      // 1. <br> taglerini gerçek satır sonuna çevir
+      text = text.replace(/<br\s*\/?>/gi, "\n");
+      
+      // 2. Kapsayıcı div oluştur ve stil uygula
+      const rootDiv = document.createElement("div"); // ✔ en dış div
+  rootDiv.style.whiteSpace = "pre-wrap";
 
-        const data = await res.json();
-        console.log("Cevap:", data.reply);
-
-        
-
-if (!data.reply || typeof data.reply !== 'string') {
-  throw new Error("API'den geçerli yanıt alınamadı.");
-}
-
-const formatted = formatReply(data.reply);
-console.log("Formatlanmış:", formatted); // 👈 Ve buraya
-
-        loading.innerHTML = `
-          <img class="avatar" src="assets/avatars/elestir-AI.png">
-          <div class="message-content">
-            <div class="username">Eleştir-AI 🤖</div>
-            <div class="text"></div>
-          </div>
-        `;
-        
-        const textDiv = loading.querySelector('.text');
-        textDiv.innerHTML = ''; // önce temizle
-        textDiv.appendChild(formatted); // DOM elementi olduğu gibi ekle
-
-
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-
-      } catch (e) {
-        loading.innerHTML = `
-          <img class="avatar" src="assets/avatars/elestir-AI.png">
-          <div class="message-content">
-            <div class="username">Eleştir-AI 🤖</div>
-            <div class="text"><i>Hata oluştu</i></div>
-          </div>
-        `;
-      }
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    };
-
-    function formatReply(text) {
-    // 1. <br> taglerini gerçek satır sonuna çevir
-    text = text.replace(/<br\s*\/?>/gi, "\n");
-    
-    // 2. Kapsayıcı div oluştur ve stil uygula
-    const rootDiv = document.createElement("div"); // ✔ en dış div
-rootDiv.style.whiteSpace = "pre-wrap";
-
-let container = rootDiv;
-    // 3. Metni satırlara böl
-    const lines = text.split("\n");
-    lines.forEach((line, index) => {
-        let pos = 0;
-        // 3a. Madde imi kontrolü (satır başındaki -* tespiti)
-        const bulletMatch = line.match(/^(\*|-)\s+/);
-        if (bulletMatch) {
-            // Bullet sembolü ekle
-            container.appendChild(document.createTextNode("• "));
-            pos = bulletMatch[0].length; // satır içindeki başlangıç işaretini atla
-        }
-        // 3b. Satır içini karakter karakter işle
-        let boldStack = [];  // açılan <strong> elementleri yığını (ihtiyaç halinde)
-        for (; pos < line.length; pos++) {
-            const char = line[pos];
-            // Bold başlatma/kapatma kontrolü (Markdown yıldızları)
-            if (char === "*") {
-                const nextChar = line[pos + 1];
-                if (nextChar === "*") {
-                    // Çift yıldız yakalandı
-                    if (boldStack.length > 0 && boldStack[boldStack.length - 1] === "md-double") {
-                        // zaten açık bir çift-yıldız bold varsa, kapat
-                        boldStack.pop();
-                        // Son açık <strong> elementini kapat (stack takibiyle)
-                        container = container.parentNode;
-                    } else {
-                        // yeni bir çift-yıldız bold aç
-                        const strongElem = document.createElement("strong");
-                        container.appendChild(strongElem);
-                        // konteks olarak strong'un içine metin ekleyeceğimiz için container'ı güncelle
-                        container = strongElem;
-                        boldStack.push("md-double");
-                    }
-                    pos++; // ikinci yıldızı da atla
-                    continue;
-                } else {
-                    // Tek yıldız yakalandı
-                    if (boldStack.length > 0 && boldStack[boldStack.length - 1] === "md-single") {
-                        // açık bir tek-yıldız bold'u kapat
-                        boldStack.pop();
-                        container = container.parentNode;
-                    } else {
-                        // yeni tek-yıldız bold aç
-                        const strongElem = document.createElement("strong");
-                        container.appendChild(strongElem);
-                        container = strongElem;
-                        boldStack.push("md-single");
-                    }
-                    continue;
-                }
-            }
-            // HTML <b> veya </b> etiket kontrolü
-            if (char === "<") {
-                const substring = line.substring(pos).toLowerCase();
-                if (substring.startsWith("<b>") || substring.startsWith("<strong>")) {
-                    // Bold etiketi açılıyor
-                    const strongElem = document.createElement("strong");
-                    container.appendChild(strongElem);
-                    container = strongElem;
-                    boldStack.push("html");  // HTML kaynağıyla açılan bold
-                    // etiketin tamamını atla (<b> 3 karakter, <strong> 8 karakter)
-                    pos += substring.startsWith("<strong>") ? 7 : 2;
-                    continue;
-                }
-                if (substring.startsWith("</b>") || substring.startsWith("</strong>")) {
-                    // Bold etiketi kapanıyor
-                    if (boldStack.length > 0) {
-                        boldStack.pop();
-                        container = container.parentNode;
-                    }
-                    // kapanış etiketinin tamamını atla (</b> 4 char, </strong> 9 char)
-                    pos += substring.startsWith("</strong>") ? 8 : 3;
-                    continue;
-                }
-                if (substring.startsWith("<i>") || substring.startsWith("<em>")) {
-                    // Italik açılışı - isteğe bağlı, benzer mantıkla <em> oluşturulabilir
-                    const emElem = document.createElement("em");
-                    container.appendChild(emElem);
-                    container = emElem;
-                    boldStack.push("html-italic");
-                    pos += substring.startsWith("<em>") ? 3 : 2;
-                    continue;
-                }
-                if (substring.startsWith("</i>") || substring.startsWith("</em>")) {
-                    // Italik kapanışı
-                    if (boldStack.length > 0) {
-                        boldStack.pop();
-                        container = container.parentNode;
-                    }
-                    pos += substring.startsWith("</em>") ? 4 : 3;
-                    continue;
-                }
-                // Diğer durumlarda '<' normal karakter olarak ele alınacak (etiket değil)
-            }
-            // Özel bir durum yoksa, karakteri olduğu gibi metin düğümü olarak ekle
-            container.appendChild(document.createTextNode(char));
-        } // for satır karakter sonu
-        // Satır sonunda, eğer herhangi bir <strong> açık kaldıysa kapatıyoruz:
-        while (boldStack.length > 0) {
-            boldStack.pop();
-            container = container.parentNode;
-        }
-        // Bir sonraki satıra geç (varsa)
-        if (index < lines.length - 1) {
-            container.appendChild(document.createTextNode("\n"));
-        }
-    });
-    
-    return container;
-}
-
-
-
-    window.quickAsk = function (message) {
-  userInput.value = message;
-  sendMessage();
-}
-userInput.addEventListener('input', () => {
-  document.getElementById('suggestions')?.replaceChildren();
-
-});
-
-window.resetChat = function () {
-  chatContainer.innerHTML = "";
-  document.querySelector('.custom-dropdown')?.classList.remove('hidden');
-  dropdownBtn.innerHTML = 'Kategori seç <span class="arrow">▼</span>';
-
-  // suggestions kutusu varsa içini temizle, yoksa oluştur
-  let suggestionsBox = document.getElementById('suggestions');
-  if (!suggestionsBox) {
-    suggestionsBox = document.createElement('div');
-    suggestionsBox.id = 'suggestions';
-    suggestionsBox.className = 'suggestions';
-    document.querySelector('main').insertBefore(suggestionsBox, document.querySelector('.input-group'));
-  } else {
-    suggestionsBox.innerHTML = "";
+  let container = rootDiv;
+      // 3. Metni satırlara böl
+      const lines = text.split("\n");
+      lines.forEach((line, index) => {
+          let pos = 0;
+          // 3a. Madde imi kontrolü (satır başındaki -* tespiti)
+          const bulletMatch = line.match(/^(\*|-)\s+/);
+          if (bulletMatch) {
+              // Bullet sembolü ekle
+              container.appendChild(document.createTextNode("• "));
+              pos = bulletMatch[0].length; // satır içindeki başlangıç işaretini atla
+          }
+          // 3b. Satır içini karakter karakter işle
+          let boldStack = [];  // açılan <strong> elementleri yığını (ihtiyaç halinde)
+          for (; pos < line.length; pos++) {
+              const char = line[pos];
+              // Bold başlatma/kapatma kontrolü (Markdown yıldızları)
+              if (char === "*") {
+                  const nextChar = line[pos + 1];
+                  if (nextChar === "*") {
+                      // Çift yıldız yakalandı
+                      if (boldStack.length > 0 && boldStack[boldStack.length - 1] === "md-double") {
+                          // zaten açık bir çift-yıldız bold varsa, kapat
+                          boldStack.pop();
+                          // Son açık <strong> elementini kapat (stack takibiyle)
+                          container = container.parentNode;
+                      } else {
+                          // yeni bir çift-yıldız bold aç
+                          const strongElem = document.createElement("strong");
+                          container.appendChild(strongElem);
+                          // konteks olarak strong'un içine metin ekleyeceğimiz için container'ı güncelle
+                          container = strongElem;
+                          boldStack.push("md-double");
+                      }
+                      pos++; // ikinci yıldızı da atla
+                      continue;
+                  } else {
+                      // Tek yıldız yakalandı
+                      if (boldStack.length > 0 && boldStack[boldStack.length - 1] === "md-single") {
+                          // açık bir tek-yıldız bold'u kapat
+                          boldStack.pop();
+                          container = container.parentNode;
+                      } else {
+                          // yeni tek-yıldız bold aç
+                          const strongElem = document.createElement("strong");
+                          container.appendChild(strongElem);
+                          container = strongElem;
+                          boldStack.push("md-single");
+                      }
+                      continue;
+                  }
+              }
+              // HTML <b> veya </b> etiket kontrolü
+              if (char === "<") {
+                  const substring = line.substring(pos).toLowerCase();
+                  if (substring.startsWith("<b>") || substring.startsWith("<strong>")) {
+                      // Bold etiketi açılıyor
+                      const strongElem = document.createElement("strong");
+                      container.appendChild(strongElem);
+                      container = strongElem;
+                      boldStack.push("html");  // HTML kaynağıyla açılan bold
+                      // etiketin tamamını atla (<b> 3 karakter, <strong> 8 karakter)
+                      pos += substring.startsWith("<strong>") ? 7 : 2;
+                      continue;
+                  }
+                  if (substring.startsWith("</b>") || substring.startsWith("</strong>")) {
+                      // Bold etiketi kapanıyor
+                      if (boldStack.length > 0) {
+                          boldStack.pop();
+                          container = container.parentNode;
+                      }
+                      // kapanış etiketinin tamamını atla (</b> 4 char, </strong> 9 char)
+                      pos += substring.startsWith("</strong>") ? 8 : 3;
+                      continue;
+                  }
+                  if (substring.startsWith("<i>") || substring.startsWith("<em>")) {
+                      // Italik açılışı - isteğe bağlı, benzer mantıkla <em> oluşturulabilir
+                      const emElem = document.createElement("em");
+                      container.appendChild(emElem);
+                      container = emElem;
+                      boldStack.push("html-italic");
+                      pos += substring.startsWith("<em>") ? 3 : 2;
+                      continue;
+                  }
+                  if (substring.startsWith("</i>") || substring.startsWith("</em>")) {
+                      // Italik kapanışı
+                      if (boldStack.length > 0) {
+                          boldStack.pop();
+                          container = container.parentNode;
+                      }
+                      pos += substring.startsWith("</em>") ? 4 : 3;
+                      continue;
+                  }
+                  // Diğer durumlarda '<' normal karakter olarak ele alınacak (etiket değil)
+              }
+              // Özel bir durum yoksa, karakteri olduğu gibi metin düğümü olarak ekle
+              container.appendChild(document.createTextNode(char));
+          } // for satır karakter sonu
+          // Satır sonunda, eğer herhangi bir <strong> açık kaldıysa kapatıyoruz:
+          while (boldStack.length > 0) {
+              boldStack.pop();
+              container = container.parentNode;
+          }
+          // Bir sonraki satıra geç (varsa)
+          if (index < lines.length - 1) {
+              container.appendChild(document.createTextNode("\n"));
+          }
+      });
+      
+      return container;
   }
 
-  showWelcomeMessage();
-};
 
 
-userInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault(); // Satır atlamayı engelle
-    sendMessage();      // Mesajı gönder
+      window.quickAsk = function (message) {
+    userInput.value = message;
+    sendMessage();
   }
-});
+  userInput.addEventListener('input', () => {
+    document.getElementById('suggestions')?.replaceChildren();
+
+  });
 
 
-  </script>
-</body>
-</html>
+  userInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // Satır atlamayı engelle
+      sendMessage();      // Mesajı gönder
+    }
+  });
+
+
+    </script>
+  </body>
+  </html>

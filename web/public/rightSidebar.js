@@ -143,6 +143,49 @@ async function loadVeteranUsers() {
   
 }
 
+
+// 📊 Popüler Kategoriler
+async function loadPopularCategories() {
+  const categoryCount = {};
+  const snapshot = await getDocs(collection(db, "posts"));
+
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    const cat = data.category || "Diğer";
+    categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+  });
+
+  // En çok kullanılan ilk 5 kategori
+  const sortedCategories = Object.entries(categoryCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const categoryIcons = {
+    "Eğitim": "🎓",
+    "Spor": "🏋️",
+    "Tamirat": "🛠",
+    "Araç Bakım": "🚗",
+    "Sağlık": "🩺",
+    "Teknoloji": "💻",
+    "Kişisel Gelişim": "📘",
+    "Sanat": "🎨",
+    "Yazılım": "👨‍💻",
+    "Diğer": "📌"
+  };
+
+  const container = document.getElementById("popular-categories");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  sortedCategories.forEach(([category, count]) => {
+    const icon = categoryIcons[category] || "📌";
+    const li = document.createElement("li");
+    li.innerHTML = `${icon} ${category} <small>(${count})</small>`;
+    container.appendChild(li);
+  });
+}
+
 // Çalıştır
 const interval = setInterval(() => {
   const container = document.getElementById("new-users");
@@ -151,5 +194,6 @@ const interval = setInterval(() => {
     loadRecentUsers();
     loadTopHelpers();
     loadVeteranUsers();
+    loadPopularCategories();
   }
 }, 100);
